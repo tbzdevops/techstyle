@@ -36,7 +36,7 @@ fi
 
 # ── 5. Start the development server ───────────────────────────────
 echo ""
-echo "==> Starting TechStyle dev server at http://localhost:5000"
+echo "==> Starting TechStyle dev server at http://localhost:5001"
 echo "    Press Ctrl+C to stop."
 echo ""
 python app.py
