@@ -3,3 +3,17 @@
 
 .DS_Store
 *.log
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*.tmp
+*.egg-info/
+dist/
