@@ -5,21 +5,25 @@ echo "🔍 Prüfe Abnahmekriterien für Tag 14 — Container Basics"
 echo ""
 
 check_file_exists \
+  "dockerfile" \
   "Dockerfile existiert" \
   "Dockerfile"
 
 check_file_contains \
-  "Dockerfile verwendet ein Base-Image (FROM)" \
+  "dockerfile" \
+  "Dockerfile hat Base-Image (FROM)" \
   "Dockerfile" \
   "^FROM"
 
 check_file_exists \
+  "dockerfile" \
   ".dockerignore existiert" \
   ".dockerignore"
 
 check_file_contains \
-  "Non-Root User oder USER-Anweisung vorhanden (Best Practice)" \
+  "dockerfile" \
+  "Non-Root User oder USER-Anweisung vorhanden (Security Best Practice)" \
   "Dockerfile" \
   "^USER"
 
-summary
+summary 14

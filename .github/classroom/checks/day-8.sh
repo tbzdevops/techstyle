@@ -5,16 +5,19 @@ echo "🔍 Prüfe Abnahmekriterien für Tag 8 — Monitoring & Observability Set
 echo ""
 
 check \
-  "Alle vorherigen CI/CD-Checks erfüllt" \
+  "ci-workflow" \
+  "CI/CD Workflows vorhanden" \
   "[ -d '.github/workflows' ] && ls .github/workflows/*.yml &>/dev/null"
 
 check_file_contains \
-  "Logging oder Monitoring erwähnt" \
+  "ci-workflow" \
+  "Logging oder Monitoring in App erwähnt" \
   "README.md|docs/*.md|app.py" \
   "log|monitor|metric|prometheus|grafana"
 
 check_file_exists \
+  "ci-workflow" \
   "Health-Check oder Status-Endpoint dokumentiert" \
-  "README.md|docs/*.md|app.py"
+  "README.md|docs/*.md"
 
-summary
+summary 8

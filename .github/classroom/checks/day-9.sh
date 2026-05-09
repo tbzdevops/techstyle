@@ -5,16 +5,19 @@ echo "🔍 Prüfe Abnahmekriterien für Tag 9 — Monitoring Grundlagen (Prometh
 echo ""
 
 check_file_exists \
-  "Prometheus-Konfiguration oder Metriken vorhanden" \
+  "ci-workflow" \
+  "Prometheus-Konfiguration vorhanden" \
   "prometheus.yml|monitoring/prometheus.yml|docs/monitoring.md"
 
 check_file_contains \
-  "Metrics oder Prometheus erwähnt" \
+  "ci-workflow" \
+  "Prometheus oder Metriken erwähnt" \
   "README.md|docs/*.md|app.py" \
   "prometheus|metrics|scrape|monitoring"
 
 check_file_exists \
-  "Grafana-Konfiguration oder Dashboard-Definition" \
+  "ci-workflow" \
+  "Grafana-Konfiguration oder Dashboard vorhanden" \
   "grafana/dashboards/*.json|dashboards/*.json|monitoring/grafana.yml"
 
-summary
+summary 9
