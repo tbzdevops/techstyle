@@ -1,0 +1,60 @@
+name: 🎓 Autograding
+
+on:
+  push:
+    branches:
+      - 'tag[0-9][0-9]'          # Student branches: tag01, tag02, ...
+      - 'tag[0-9][0-9]-*'        # z.B. tag13-ai-integration
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  grade:
+    name: Abnahmekriterien prüfen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # Gesamte Git-History für Checks
+
+      - name: Tag-Nummer ermitteln
+        id: day
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          DAY=$(echo "$BRANCH" | grep -oP '^\d+|(?<=tag)\d+' | head -1)
+          # Führende Null entfernen für Dateinamen (tag01 → 1, tag13 → 13)
+          DAY_NUM=$(echo "$DAY" | sed 's/^0*//')
+          echo "number=$DAY_NUM" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "✅ Erkannter Tag: $DAY_NUM (Branch: $BRANCH)"
+
+      - name: Checks für diesen Tag ausführen
+        id: checks
+        run: |
+          DAY="${{ steps.day.outputs.number }}"
+          CHECK_FILE=".github/classroom/checks/day-${DAY}.sh"
+
+          if [ ! -f "$CHECK_FILE" ]; then
+            echo "⚠️ Keine Checks definiert für Tag $DAY"
+            exit 0
+          fi
+
+          chmod +x "$CHECK_FILE"
+          bash "$CHECK_FILE"
+
+      - name: Ergebnis als Summary ausgeben
+        if: always()
+        run: |
+          echo "## 🎓 Autograding — Tag ${{ steps.day.outputs.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: \`${{ steps.day.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.checks.outcome }}" == "success" ]; then
+            echo "✅ **Alle Abnahmekriterien erfüllt**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Noch nicht alle Kriterien erfüllt — siehe Details oben**" >> $GITHUB_STEP_SUMMARY
+          fi
