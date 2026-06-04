@@ -1,15 +1,21 @@
 # Tag 01 – Projekt-Abschluss (TechStyle)
 
-Kickoff der TechStyle-Transformation: Die Flask-Anwendung wird lokal lauffähig gemacht, die
-Projektdokumentation gelesen und das erste Issue auf dem Kanban-Board erstellt.
+Kickoff der TechStyle-Transformation: Arbeitsumgebung einrichten (AWS, GitHub), die
+Flask-Anwendung lokal lauffähig machen, die Projektdokumentation lesen und das Kanban-Board mit
+erstem Issue aufsetzen.
 
 ## Was in diesem Tag erreicht wird
 
 | Projekt-Aufgabe | Ergebnis |
 |-----------------|----------|
-| **1. TechStyle lokal starten** | Die Flask + SQLite App läuft auf `http://localhost:5000`. |
-| **2. Kickoff-Doku lesen** | `README.md` und Branching-Strategie verstanden (Ziele, Rollen, Aufbau). |
-| **3. Erstes Issue erstellen** | Erstes Issue im GitHub-Repo angelegt und auf das Kanban-Board gehängt. |
+| **1. AWS Academy Login** | Learner Lab gestartet, AWS Management Console erreichbar. |
+| **2. GitHub Setup & Classroom** | Git-Identität gesetzt, persönliches TechStyle-Repo via Classroom geklont (`git remote -v`). |
+| **3. TechStyle lokal starten** | Die Flask + SQLite App läuft auf `http://localhost:5000`. |
+| **4. Kickoff-Doku lesen** | `README.md` und Branching-Strategie verstanden (Ziele, Rollen, Aufbau). |
+| **5. Kanban-Board & erstes Issue** | Board (Todo/In Progress/Done) mit mind. 3 Issues; erstes echtes Issue mit Definition of Done angelegt. |
+
+> Hinweis: Die Theorie-Vertiefung zu **CALMS** und **The Three Ways** findet an Tag 01 als
+> Praxis-Gruppenarbeit statt (Musterlösungen im Repo `musterloesungen-praxisauftraege`, `tag01/`).
 
 > Auf diesem Branch (`day_1_solution`) liegt die vollständige, lauffähige Ausgangs-Codebasis. Es
 > sind für Tag 01 **keine Code-Änderungen** nötig – das Ziel ist der lauffähige Startzustand, auf
