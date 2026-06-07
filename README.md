@@ -1,4 +1,4 @@
-# TechStyle Online Shop
+f# TechStyle Online Shop
 
 A fashion e-commerce app for developers. Built with Python Flask + SQLite.
 
@@ -47,7 +47,7 @@ Make sure `~/.ssh/techstyle_prod.pem` exists and the server IP in `deploy.sh` is
 
 # 🎓 GitHub Classroom — DevOps Kurs
 
-Dieses Repository wird als Template für GitHub Classroom verwendet. Wenn du über ein Classroom-Assignment arbeiten, folge dieser Anleitung:
+Dieses Repository wird als Template für GitHub Classroom verwendet. Wenn du über ein Classroom-Assignment arbeitest, folge dieser Anleitung:
 
 ## Für Studierende
 
