@@ -1,5 +1,0 @@
-# TechStyle .gitignore
-# TODO: this is incomplete — add more entries as needed
-
-.DS_Store
-*.log
