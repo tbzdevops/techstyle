@@ -1,0 +1,23 @@
+name: Main Pipeline
+
+on: [push]
+
+jobs:
+  lint:
+    if: hashFiles('.github/workflows/lint.yml') != ''
+    uses: ./.github/workflows/lint.yml
+
+  test:
+    if: hashFiles('.github/workflows/test.yml') != ''
+    uses: ./.github/workflows/test.yml
+    needs: lint
+
+  build:
+    if: hashFiles('.github/workflows/build.yml') != ''
+    uses: ./.github/workflows/build.yml
+    needs: test
+
+  deploy:
+    if: hashFiles('.github/workflows/deploy.yml') != ''
+    uses: ./.github/workflows/deploy.yml
+    needs: build
