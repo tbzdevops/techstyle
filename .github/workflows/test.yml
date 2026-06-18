@@ -2,3 +2,7 @@ name: test.yml
 on:
   workflow_call:
 jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "⏭️ Not implemented yet"
