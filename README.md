@@ -1,93 +1,113 @@
-# Python Flask E-Commerce Website
+# TechStyle
 
-A simple e-commerce website using Flask, Jinja2, SQLite, jQuery, Bootstrap and Python.
+TechStyle ist eine Flask-basierte Beispielapplikation fuer einen kleinen Online-Shop.
+Diese Branch dokumentiert den Stand, der aus dem bisherigen On-Premises-Betrieb in ein
+Git-Repository ueberfuehrt wurde.
 
-The application loads a gallery of clothing items that includes: image, name, price, and a small form to add clothing items to shopping cart. The clothing information is stored in a SQLite database and is displayed using Bootstrap's card class.
+## Zweck dieser Branch
 
-The application contains filters that were implemented through SQLite queries so that the user can scroll through the items according to different categories such as, Shirts, Pants, Shoes, Price etc.
+Die Branch dient als Musterloesung fuer den Auftrag "Codebasis ins Repository bringen".
+Sie zeigt, wie bestehender Anwendungscode so vorbereitet wird, dass er im Team
+nachvollziehbar versioniert, lokal gestartet und spaeter weiterentwickelt werden kann.
 
-<p align="center">
-  <img src="https://github.com/haxamxam/Flask-Python-E-Commerce/blob/master/clothing.png" width="1000" height="600" alt="accessibility text">
-</p>
+## Technischer Ueberblick
 
-The application can be visited here:
+- Backend: Python, Flask, Flask-Session
+- Templates: Jinja2
+- Frontend: Bootstrap, jQuery, eigenes JavaScript und CSS
+- Datenbank: MySQL, Zugriff ueber `cs50.SQL`
+- Startpunkt: `wsgi.py`
+- Applikationslogik: `application.py`
+- Datenbankschema und Beispieldaten: `ecommerce.sql`
 
-[https://sampleclothing.herokuapp.com/](https://sampleclothing.herokuapp.com/)
+Weitere Details stehen in [docs/architecture.md](docs/architecture.md).
 
+## Voraussetzungen
 
-## Installation
+- Python 3.11 oder neuer
+- MySQL oder MariaDB
+- Git
+- Optional: virtualenv oder `.venv`
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the dependencies.
-
-Go in the same directory as the requirements.txt file and run the following
+## Lokale Installation
 
 ```bash
-pip install -r requirements.txt
+py -m venv .venv
+.venv\Scripts\activate
+py -m pip install --upgrade pip
+py -m pip install -r requirements.txt
 ```
 
-## Usage
-
-There are two ways to run the application the application
-
-### Run as Python application 
-
-Go to the same directory as the main application and run the following
+Unter macOS oder Linux:
 
 ```bash
-python wsgi.py
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
 ```
-### Run as Flask application 
 
-Go to the same directory as the main application and run the following
+## Konfiguration
 
+Die Anwendung liest die Datenbankverbindung aus `DATABASE_URL`.
+Echte Zugangsdaten gehoeren nicht ins Repository.
 
 ```bash
+copy .env.example .env
+```
+
+Beispiel:
+
+```text
+DATABASE_URL=mysql://techstyle:techstyle@localhost:3306/ecommerce
+FLASK_APP=application.py
+FLASK_ENV=development
+```
+
+Wenn keine Umgebungsvariable gesetzt ist, verwendet die App die lokale
+Default-Verbindung aus `.env.example`.
+
+## Datenbank vorbereiten
+
+1. Datenbank und Benutzer lokal erstellen.
+2. Schema und Beispieldaten importieren.
+
+```bash
+mysql -u techstyle -p -e "CREATE DATABASE IF NOT EXISTS ecommerce;"
+mysql -u techstyle -p ecommerce < ecommerce.sql
+```
+
+## Anwendung starten
+
+```bash
+set DATABASE_URL=mysql://techstyle:techstyle@localhost:3306/ecommerce
 set FLASK_APP=application.py
 flask run
 ```
 
-
-## Deploying on Heroku
-
-The entry point to the application is in wsgi.py file
-
-```python
-from application import app
-
-if __name__ == "__main__":
-    app.run()
-```
-We then need to create a Procfile to deploy to Heroku
-
-
+Alternativ:
 
 ```bash
-web: gunicorn wsgi:app
+py wsgi.py
 ```
 
-### Create the Heroku application
+Die Anwendung ist danach standardmaessig unter `http://127.0.0.1:5000`
+erreichbar.
 
-Use the HerokuCLI to deploy the application to Heroku 
+## Repository-Hygiene
 
-```bash
-heroku login
-git init
-heroku create sampleclothing
-git add.
-git commit -am "First python app"
-git push heroku master
-```
+- `.env`, virtuelle Umgebungen, Python-Caches und lokale Session-Dateien sind per
+  `.gitignore` ausgeschlossen.
+- Konfiguration wird ueber Umgebungsvariablen gesetzt.
+- Commit-Messages folgen dem Stil aus [CONTRIBUTING.md](CONTRIBUTING.md).
+- Releases werden semantisch versioniert, siehe [RELEASES.md](RELEASES.md).
 
-Once the files are deployed your application will be visible and can be visited. In our case the application is deployed at the link below:
+## Bekannte Einschraenkungen
 
+- Passwoerter werden im aktuellen Legacy-Code noch im Klartext gespeichert.
+- Der Warenkorb ist global in der Datenbank abgelegt und noch nicht sauber pro
+  Benutzer getrennt.
+- Es gibt noch keine automatisierten Tests.
 
-[https://sampleclothing.herokuapp.com/](https://sampleclothing.herokuapp.com/)
-
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+Diese Punkte sind bewusst dokumentiert, damit die ueberfuehrte Codebasis ehrlich
+bewertet und in spaeteren Auftraegen gezielt verbessert werden kann.
