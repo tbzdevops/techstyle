@@ -1,3 +1,4 @@
-Name: lint.yml
+name: lint.yml
 on:
   workflow_call:
+jobs:

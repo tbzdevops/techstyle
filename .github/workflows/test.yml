@@ -1,3 +1,4 @@
-Name: test.yml
+name: test.yml
 on:
   workflow_call:
+jobs:

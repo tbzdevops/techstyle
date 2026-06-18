@@ -1,3 +1,4 @@
-Name: build.yml
+name: build.yml
 on:
   workflow_call:
+jobs:

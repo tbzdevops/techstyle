@@ -1,3 +1,4 @@
-Name: deploy.yml
+name: deploy.yml
 on:
   workflow_call:
+jobs:
