@@ -1,7 +1,9 @@
-from cs50 import SQL
-from flask_session import Session
-from flask import Flask, render_template, redirect, request, session, jsonify
 from datetime import datetime
+import os
+
+from cs50 import SQL
+from flask import Flask, render_template, redirect, request, session, jsonify
+from flask_session import Session
 
 # # Instantiate Flask object named app
 app = Flask(__name__)
@@ -11,8 +13,10 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Creates a connection to the database
-db = SQL ( "mysql://shopuser2:password2@10.11.5.5:3306/ecommerce" )
+# Creates a connection to the database.
+# Configure DATABASE_URL in the runtime environment, for example:
+# mysql://shopuser:password@db.example.local:3306/ecommerce
+db = SQL(os.environ.get("DATABASE_URL", "mysql://techstyle:techstyle@localhost:3306/ecommerce"))
 
 
 @app.route("/")
@@ -269,5 +273,4 @@ def cart():
             totItems += shoppingCart[i]["SUM(qty)"]
     # Render shopping cart
     return render_template("cart.html", shoppingCart=shoppingCart, shopLen=shopLen, total=total, totItems=totItems, display=display, session=session)
-
 
