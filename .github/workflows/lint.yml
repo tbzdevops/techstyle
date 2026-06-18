@@ -1,0 +1,3 @@
+Name: lint.yml
+on:
+  workflow_call:

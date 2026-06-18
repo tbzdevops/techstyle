@@ -1,0 +1,3 @@
+Name: build.yml
+on:
+  workflow_call:

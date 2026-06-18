@@ -1,0 +1,3 @@
+Name: deploy.yml
+on:
+  workflow_call:

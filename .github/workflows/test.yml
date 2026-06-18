@@ -1,0 +1,3 @@
+Name: test.yml
+on:
+  workflow_call:
