@@ -1,33 +1,46 @@
-{% extends "base.html" %}
-{% block title %}Login — TechStyle{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="theme-color" content="#000000">
+        <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+            crossorigin="anonymous">
+        <link href="{{ url_for('static',filename='css/custom.css') }}" rel="stylesheet" type="text/css" />
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
 
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-4">
-    <div class="card shadow-sm">
-      <div class="card-header bg-dark text-white fw-bold text-center">
-        <i class="bi bi-person-circle me-1"></i>Sign In
-      </div>
-      <div class="card-body">
-        <form method="post" action="{{ url_for('login') }}">
-          <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username"
-                   autofocus required>
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
-          </div>
-          <div class="d-grid">
-            <button type="submit" class="btn btn-dark">Log In</button>
-          </div>
-        </form>
-      </div>
-      <div class="card-footer text-center text-muted small">
-        No account? <a href="{{ url_for('register') }}">Register here</a>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
+        <title>Sample Clothing Store - Log In</title>
+    </head>
+    <body>
+    <header>
+        <nav class="navbar fixed-top navbar-dark bg-dark navbar-expand-sm box-shadow">
+          <a href="/" class="navbar-brand d-flex align-items-center">
+              <strong><i class="fa  fa-cart-plus"></i> Sample Clothing Store</strong>
+          </a>
+        </nav>
+    </header><br />
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm">
+                    <h2>Log In to Buy</h2>
+                    <p>{{ msg }}</p>
+                    <div>
+                        <form action="/logged/" class="form" method="post">
+                            <div>
+                                <input type="text" name="username" autofocus placeholder="Username">
+                                <input type="password" name="password" placeholder="Password">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    </body>
+</html>
