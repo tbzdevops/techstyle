@@ -504,7 +504,12 @@ def inject_now():
 #  Main
 # ─────────────────────────────────────────────
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the `run-techstyle` console script (see pyproject.toml)."""
     # debug=True exposes the Werkzeug debugger to everyone — great for dev,
     # catastrophic for prod. Ship it.
     app.run(host="0.0.0.0", port=5001, debug=True)
+
+
+if __name__ == "__main__":
+    main()

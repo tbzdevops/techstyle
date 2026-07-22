@@ -30,6 +30,19 @@ python app.py
 
 Make sure `~/.ssh/techstyle_prod.pem` exists and the server IP in `deploy.sh` is correct.
 
+## Building a Release Artifact
+
+TechStyle can be built into a versioned Python package (sdist + wheel) instead of being deployed as loose source files:
+
+```bash
+pip install build
+python -m build          # creates dist/techstyle-<version>-py3-none-any.whl and .tar.gz
+pip install dist/techstyle-*.whl
+run-techstyle             # console-script entry point, starts the dev server
+```
+
+The GitHub Actions pipeline (`.github/workflows/ci.yml`) builds this artifact automatically after tests pass and uploads it via `actions/upload-artifact`. Pushing a `v*` tag additionally publishes it to a self-hosted PEP 503 package index on GitHub Pages (`.github/workflows/publish-pages.yml`) — see `docs/DAY_6_COMPLETION.md` for details.
+
 ## Features
 
 - Product catalogue (20 items, multiple categories)
