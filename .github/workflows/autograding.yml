@@ -1,0 +1,81 @@
+name: 🎓 Autograding
+
+on:
+  push:
+    branches:
+      - 'tag[0-9][0-9]'          # Student branches: tag01, tag02, ...
+      - 'tag[0-9][0-9]-*'        # z.B. tag13-ai-integration
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  grade:
+    name: Abnahmekriterien prüfen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag-Nummer ermitteln
+        id: day
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          DAY=$(echo "$BRANCH" | grep -oP '^\d+|(?<=tag)\d+' | head -1)
+          DAY_NUM=$(echo "$DAY" | sed 's/^0*//')
+          echo "number=$DAY_NUM" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "✅ Erkannter Tag: $DAY_NUM (Branch: $BRANCH)"
+
+      - name: Checks für diesen Tag ausführen
+        id: checks
+        continue-on-error: true
+        run: |
+          DAY="${{ steps.day.outputs.number }}"
+          CHECK_FILE=".github/classroom/checks/day-${DAY}.sh"
+
+          if [ ! -f "$CHECK_FILE" ]; then
+            echo "::notice title=Keine Checks::Für Tag $DAY sind keine Checks definiert"
+            exit 0
+          fi
+
+          chmod +x "$CHECK_FILE"
+          bash "$CHECK_FILE"
+
+      - name: Workflow-Zusammenfassung
+        if: always()
+        run: |
+          DAY="${{ steps.day.outputs.number }}"
+          BRANCH="${{ steps.day.outputs.branch }}"
+
+          echo "## 🎓 Autograding — Tag $DAY" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`$BRANCH\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.checks.outcome }}" == "success" ]; then
+            echo "### ✅ Status: Bestanden" >> $GITHUB_STEP_SUMMARY
+            echo "Alle Abnahmekriterien erfüllt! 🎉" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Status: Nicht bestanden" >> $GITHUB_STEP_SUMMARY
+            echo "Siehe die Fehler oben (🔴 Error-Annotationen) für Details und Lösungshilfen." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Nächste Schritte:**" >> $GITHUB_STEP_SUMMARY
+            echo "1. Lies die Fehler-Meldungen oben" >> $GITHUB_STEP_SUMMARY
+            echo "2. Implementiere die fehlenden Anforderungen" >> $GITHUB_STEP_SUMMARY
+            echo "3. Commit und push: \`git push origin $BRANCH\`" >> $GITHUB_STEP_SUMMARY
+            echo "4. Autograding läuft automatisch wieder" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[Details im Actions-Log](../../actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+
+      - name: Exit Code setzen
+        if: always()
+        run: |
+          if [ "${{ steps.checks.outcome }}" != "success" ]; then
+            exit 1
+          fi
