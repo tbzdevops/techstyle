@@ -4,29 +4,43 @@
 PASS=0
 FAIL=0
 
+DAY_MARKER_FILE=".github/classroom/day"
+
 resolve_day() {
   local ref="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF:-}}}"
 
+  # 1. Expliziter Override (z. B. lokales Testen: CLASSROOM_DAY=4 bash ...)
   if [ -n "${CLASSROOM_DAY:-}" ]; then
     echo "${CLASSROOM_DAY}"
     return 0
   fi
 
-  if [ -z "$ref" ]; then
-    return 0
+  # 2. Branch-Name (day_4_solution, tag04, ...)
+  if [ -n "$ref" ]; then
+    local normalized
+    normalized="$(echo "$ref" | tr '[:upper:]' '[:lower:]')"
+
+    if [[ "$normalized" =~ (^|[^0-9])(tag|day)?0*([1-9][0-9]?)($|[^0-9]) ]]; then
+      echo "${BASH_REMATCH[3]}"
+      return 0
+    fi
+
+    if [[ "$normalized" =~ ([0-9]{1,2}) ]]; then
+      echo "${BASH_REMATCH[1]}"
+      return 0
+    fi
   fi
 
-  local normalized
-  normalized="$(echo "$ref" | tr '[:upper:]' '[:lower:]')"
-
-  if [[ "$normalized" =~ (^|[^0-9])(tag|day)?0*([1-9][0-9]?)($|[^0-9]) ]]; then
-    echo "${BASH_REMATCH[3]}"
-    return 0
-  fi
-
-  if [[ "$normalized" =~ ([0-9]{1,2}) ]]; then
-    echo "${BASH_REMATCH[1]}"
-    return 0
+  # 3. Marker-Datei — greift in GitHub-Classroom-Repos, in denen die
+  #    Studierenden direkt auf 'main' arbeiten und der Branch-Name
+  #    keine Tag-Nummer enthaelt.
+  if [ -f "$DAY_MARKER_FILE" ]; then
+    local marker
+    marker="$(tr -cd '0-9' < "$DAY_MARKER_FILE")"
+    if [ -n "$marker" ]; then
+      echo "$((10#$marker))"
+      return 0
+    fi
   fi
 
   return 0
@@ -37,7 +51,8 @@ run_day_checks() {
   day="$(resolve_day)"
 
   if [ -z "$day" ]; then
-    echo "ℹ️ Keine Tag-Nummer erkannt. Überspringe automatische Auswertung."
+    echo "⚠️ Keine Tag-Nummer erkannt (weder CLASSROOM_DAY, Branch-Name noch $DAY_MARKER_FILE)."
+    echo "::warning title=Keine Auswertung::Tag-Nummer nicht erkannt — es wurden KEINE Abnahmekriterien geprüft."
     return 0
   fi
 
@@ -140,7 +155,8 @@ check_workflow_exists() {
   local id="$1"
   local description="$2"
   local pattern="$3"
-  check "$id" "$description" "ls .github/workflows/$pattern 2>/dev/null | head -1"
+  # grep -q stellt sicher, dass ein leeres ls-Ergebnis auch wirklich fehlschlaegt
+  check "$id" "$description" "ls -1 .github/workflows/$pattern 2>/dev/null | grep -q ."
 }
 
 check_directory_exists() {
