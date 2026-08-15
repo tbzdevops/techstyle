@@ -111,11 +111,38 @@ solution_for_id() {
     ci-workflow)
       echo "Erstelle .github/workflows/ci.yml mit Push-Trigger"
       ;;
+    ci-trigger)
+      echo "Konfiguriere im CI-Workflow einen Trigger: on: push (und pull_request)"
+      ;;
+    ci-branches)
+      echo "Trigger auf die Branching-Strategie ausrichten: branches: [main, 'day_*']"
+      ;;
+    ci-dependencies)
+      echo "Ergänze einen Schritt 'pip install -r requirements.txt' im CI-Workflow"
+      ;;
+    test-deps)
+      echo "Ergänze pytest und pytest-mock in requirements.txt"
+      ;;
+    conftest)
+      echo "Erstelle conftest.py im Projektstamm (fügt das Projektverzeichnis zum sys.path hinzu)"
+      ;;
+    test-files)
+      echo "Erstelle tests/test_app.py und tests/integration/test_workflow.py (siehe Vorbereitung)"
+      ;;
     linting)
       echo "Füge Linting-Schritt (flake8, pylint) im CI-Workflow hinzu"
       ;;
+    lint-config)
+      echo "Konfiguriere den Linter, z. B. flake8 tests/ conftest.py --max-line-length=100 --ignore=E302,W503"
+      ;;
+    lint-strict)
+      echo "Entferne --exit-zero bzw. '|| true' — der Linter muss die Pipeline rot machen"
+      ;;
     testing)
       echo "Füge Test-Schritt (pytest) im CI-Workflow hinzu"
+      ;;
+    pipeline-strict)
+      echo "Entferne continue-on-error: true — die Pipeline muss bei Fehlern fehlschlagen"
       ;;
     cd-workflow)
       echo "Erstelle .github/workflows/deploy.yml für Deployment"
