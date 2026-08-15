@@ -5,9 +5,26 @@ PASS=0
 FAIL=0
 
 DAY_MARKER_FILE=".github/classroom/day"
+CLASSROOM50_CONFIG=".classroom50.yaml"
+
+# Liest die Tagesnummer aus einem String wie "day04", "tag4",
+# "day_4_solution" oder "itcne-25-project-day04-mmuster".
+# Der Praefix tag|day ist zwingend — sonst wuerde "itcne-25-project"
+# als Tag 25 gelesen. Gibt die Nummer aus (Rueckgabewert 0) oder 1.
+day_from_string() {
+  local normalized
+  normalized="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "$normalized" =~ (tag|day)[_-]?0*([1-9][0-9]?)($|[^0-9]) ]]; then
+    echo "${BASH_REMATCH[2]}"
+    return 0
+  fi
+
+  return 1
+}
 
 resolve_day() {
-  local ref="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF:-}}}"
+  local day
 
   # 1. Expliziter Override (z. B. lokales Testen: CLASSROOM_DAY=4 bash ...)
   if [ -n "${CLASSROOM_DAY:-}" ]; then
@@ -15,25 +32,33 @@ resolve_day() {
     return 0
   fi
 
-  # 2. Branch-Name (day_4_solution, tag04, ...)
-  if [ -n "$ref" ]; then
-    local normalized
-    normalized="$(echo "$ref" | tr '[:upper:]' '[:lower:]')"
-
-    if [[ "$normalized" =~ (^|[^0-9])(tag|day)?0*([1-9][0-9]?)($|[^0-9]) ]]; then
-      echo "${BASH_REMATCH[3]}"
-      return 0
-    fi
-
-    if [[ "$normalized" =~ ([0-9]{1,2}) ]]; then
-      echo "${BASH_REMATCH[1]}"
+  # 2. Classroom-50-Konfiguration — in bereitgestellten Studierenden-Repos
+  #    die verbindliche Quelle (assignment: "day04").
+  if [ -f "$CLASSROOM50_CONFIG" ]; then
+    local assignment
+    assignment="$(sed -n 's/^[[:space:]]*assignment:[[:space:]]*//p' "$CLASSROOM50_CONFIG" | head -1)"
+    if day="$(day_from_string "$assignment")"; then
+      echo "$day"
       return 0
     fi
   fi
 
-  # 3. Marker-Datei — greift in GitHub-Classroom-Repos, in denen die
+  # 3. Branch-Name (day_4_solution, tag04, tag13-ai-integration, ...)
+  local ref="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF:-}}}"
+  if [ -n "$ref" ] && day="$(day_from_string "$ref")"; then
+    echo "$day"
+    return 0
+  fi
+
+  # 4. Repository-Name — greift in Classroom-Repos, in denen die
   #    Studierenden direkt auf 'main' arbeiten und der Branch-Name
   #    keine Tag-Nummer enthaelt.
+  if [ -n "${GITHUB_REPOSITORY:-}" ] && day="$(day_from_string "${GITHUB_REPOSITORY##*/}")"; then
+    echo "$day"
+    return 0
+  fi
+
+  # 5. Marker-Datei — manueller Override durch die Lehrperson.
   if [ -f "$DAY_MARKER_FILE" ]; then
     local marker
     marker="$(tr -cd '0-9' < "$DAY_MARKER_FILE")"
@@ -51,7 +76,7 @@ run_day_checks() {
   day="$(resolve_day)"
 
   if [ -z "$day" ]; then
-    echo "⚠️ Keine Tag-Nummer erkannt (weder CLASSROOM_DAY, Branch-Name noch $DAY_MARKER_FILE)."
+    echo "⚠️ Keine Tag-Nummer erkannt (weder CLASSROOM_DAY, $CLASSROOM50_CONFIG, Branch-Name, Repository-Name noch $DAY_MARKER_FILE)."
     echo "::warning title=Keine Auswertung::Tag-Nummer nicht erkannt — es wurden KEINE Abnahmekriterien geprüft."
     return 0
   fi
@@ -63,9 +88,7 @@ run_day_checks() {
     return 0
   fi
 
-  echo "🔍 Prüfe Abnahmekriterien für Tag $day"
-  echo ""
-
+  # Die Ueberschrift kommt aus dem jeweiligen Check-Skript (mit Tagesthema).
   chmod +x "$check_file"
   bash "$check_file"
 }
@@ -88,11 +111,38 @@ solution_for_id() {
     ci-workflow)
       echo "Erstelle .github/workflows/ci.yml mit Push-Trigger"
       ;;
+    ci-trigger)
+      echo "Konfiguriere im CI-Workflow einen Trigger: on: push (und pull_request)"
+      ;;
+    ci-branches)
+      echo "Trigger auf die Branching-Strategie ausrichten: branches: [main, 'day_*']"
+      ;;
+    ci-dependencies)
+      echo "Ergänze einen Schritt 'pip install -r requirements.txt' im CI-Workflow"
+      ;;
+    test-deps)
+      echo "Ergänze pytest und pytest-mock in requirements.txt"
+      ;;
+    conftest)
+      echo "Erstelle conftest.py im Projektstamm (fügt das Projektverzeichnis zum sys.path hinzu)"
+      ;;
+    test-files)
+      echo "Erstelle tests/test_app.py und tests/integration/test_workflow.py (siehe Vorbereitung)"
+      ;;
     linting)
       echo "Füge Linting-Schritt (flake8, pylint) im CI-Workflow hinzu"
       ;;
+    lint-config)
+      echo "Konfiguriere den Linter, z. B. flake8 tests/ conftest.py --max-line-length=100 --ignore=E302,W503"
+      ;;
+    lint-strict)
+      echo "Entferne --exit-zero bzw. '|| true' — der Linter muss die Pipeline rot machen"
+      ;;
     testing)
       echo "Füge Test-Schritt (pytest) im CI-Workflow hinzu"
+      ;;
+    pipeline-strict)
+      echo "Entferne continue-on-error: true — die Pipeline muss bei Fehlern fehlschlagen"
       ;;
     cd-workflow)
       echo "Erstelle .github/workflows/deploy.yml für Deployment"
