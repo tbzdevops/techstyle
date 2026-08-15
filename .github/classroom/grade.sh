@@ -4,22 +4,142 @@
 PASS=0
 FAIL=0
 
-# Mapping von Checks zu Lösungshilfen
-declare -A SOLUTIONS=(
-  ["aws-setup"]="Stelle sicher, dass .env mit AWS-Credentials vorhanden ist"
-  ["readme"]="Erstelle README.md mit Dokumentation zur App"
-  ["git-ignore"]="Erstelle .gitignore mit Python-Einträgen (__pycache__, .venv, .env)"
-  ["version"]="Erstelle setup.py, setup.cfg oder pyproject.toml"
-  ["ci-workflow"]="Erstelle .github/workflows/ci.yml mit Push-Trigger"
-  ["linting"]="Füge Linting-Schritt (flake8, pylint) im CI-Workflow hinzu"
-  ["testing"]="Füge Test-Schritt (pytest) im CI-Workflow hinzu"
-  ["cd-workflow"]="Erstelle .github/workflows/deploy.yml für Deployment"
-  ["dockerfile"]="Erstelle Dockerfile mit FROM, RUN, CMD Anweisungen"
-  ["security-scan"]="Integriere Security-Scan (Snyk, Trivy) im Workflow"
-  ["k8s-manifests"]="Erstelle k8s/deployment.yaml mit Kubernetes-Manifesten"
-  ["ai-integration"]="Erstelle AI_INTEGRATION.md mit Reflexion (mind. 100 Wörter)"
-  ["helm-chart"]="Erstelle helm/Chart.yaml mit Helm-Konfiguration"
-)
+DAY_MARKER_FILE=".github/classroom/day"
+CLASSROOM50_CONFIG=".classroom50.yaml"
+
+# Liest die Tagesnummer aus einem String wie "day04", "tag4",
+# "day_4_solution" oder "itcne-25-project-day04-mmuster".
+# Der Praefix tag|day ist zwingend — sonst wuerde "itcne-25-project"
+# als Tag 25 gelesen. Gibt die Nummer aus (Rueckgabewert 0) oder 1.
+day_from_string() {
+  local normalized
+  normalized="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "$normalized" =~ (tag|day)[_-]?0*([1-9][0-9]?)($|[^0-9]) ]]; then
+    echo "${BASH_REMATCH[2]}"
+    return 0
+  fi
+
+  return 1
+}
+
+resolve_day() {
+  local day
+
+  # 1. Expliziter Override (z. B. lokales Testen: CLASSROOM_DAY=4 bash ...)
+  if [ -n "${CLASSROOM_DAY:-}" ]; then
+    echo "${CLASSROOM_DAY}"
+    return 0
+  fi
+
+  # 2. Classroom-50-Konfiguration — in bereitgestellten Studierenden-Repos
+  #    die verbindliche Quelle (assignment: "day04").
+  if [ -f "$CLASSROOM50_CONFIG" ]; then
+    local assignment
+    assignment="$(sed -n 's/^[[:space:]]*assignment:[[:space:]]*//p' "$CLASSROOM50_CONFIG" | head -1)"
+    if day="$(day_from_string "$assignment")"; then
+      echo "$day"
+      return 0
+    fi
+  fi
+
+  # 3. Branch-Name (day_4_solution, tag04, tag13-ai-integration, ...)
+  local ref="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF:-${GITHUB_REF:-}}}"
+  if [ -n "$ref" ] && day="$(day_from_string "$ref")"; then
+    echo "$day"
+    return 0
+  fi
+
+  # 4. Repository-Name — greift in Classroom-Repos, in denen die
+  #    Studierenden direkt auf 'main' arbeiten und der Branch-Name
+  #    keine Tag-Nummer enthaelt.
+  if [ -n "${GITHUB_REPOSITORY:-}" ] && day="$(day_from_string "${GITHUB_REPOSITORY##*/}")"; then
+    echo "$day"
+    return 0
+  fi
+
+  # 5. Marker-Datei — manueller Override durch die Lehrperson.
+  if [ -f "$DAY_MARKER_FILE" ]; then
+    local marker
+    marker="$(tr -cd '0-9' < "$DAY_MARKER_FILE")"
+    if [ -n "$marker" ]; then
+      echo "$((10#$marker))"
+      return 0
+    fi
+  fi
+
+  return 0
+}
+
+run_day_checks() {
+  local day
+  day="$(resolve_day)"
+
+  if [ -z "$day" ]; then
+    echo "⚠️ Keine Tag-Nummer erkannt (weder CLASSROOM_DAY, $CLASSROOM50_CONFIG, Branch-Name, Repository-Name noch $DAY_MARKER_FILE)."
+    echo "::warning title=Keine Auswertung::Tag-Nummer nicht erkannt — es wurden KEINE Abnahmekriterien geprüft."
+    return 0
+  fi
+
+  local check_file=".github/classroom/checks/day-${day}.sh"
+
+  if [ ! -f "$check_file" ]; then
+    echo "::notice title=Keine Checks::Für Tag $day sind keine Checks definiert"
+    return 0
+  fi
+
+  # Die Ueberschrift kommt aus dem jeweiligen Check-Skript (mit Tagesthema).
+  chmod +x "$check_file"
+  bash "$check_file"
+}
+
+solution_for_id() {
+  local id="$1"
+  case "$id" in
+    aws-setup)
+      echo "Stelle sicher, dass .env mit AWS-Credentials vorhanden ist"
+      ;;
+    readme)
+      echo "Erstelle README.md mit Dokumentation zur App"
+      ;;
+    git-ignore)
+      echo "Erstelle .gitignore mit Python-Einträgen (__pycache__, .venv, .env)"
+      ;;
+    version)
+      echo "Erstelle setup.py, setup.cfg oder pyproject.toml"
+      ;;
+    ci-workflow)
+      echo "Erstelle .github/workflows/ci.yml mit Push-Trigger"
+      ;;
+    linting)
+      echo "Füge Linting-Schritt (flake8, pylint) im CI-Workflow hinzu"
+      ;;
+    testing)
+      echo "Füge Test-Schritt (pytest) im CI-Workflow hinzu"
+      ;;
+    cd-workflow)
+      echo "Erstelle .github/workflows/deploy.yml für Deployment"
+      ;;
+    dockerfile)
+      echo "Erstelle Dockerfile mit FROM, RUN, CMD Anweisungen"
+      ;;
+    security-scan)
+      echo "Integriere Security-Scan (Snyk, Trivy) im Workflow"
+      ;;
+    k8s-manifests)
+      echo "Erstelle k8s/deployment.yaml mit Kubernetes-Manifesten"
+      ;;
+    ai-integration)
+      echo "Erstelle AI_INTEGRATION.md mit Reflexion (mind. 100 Wörter)"
+      ;;
+    helm-chart)
+      echo "Erstelle helm/Chart.yaml mit Helm-Konfiguration"
+      ;;
+    *)
+      echo "Überprüfe die Anforderungen in der Dokumentation"
+      ;;
+  esac
+}
 
 check() {
   local id="$1"
@@ -32,7 +152,8 @@ check() {
     PASS=$((PASS + 1))
   else
     echo "❌ $description"
-    local solution="${SOLUTIONS[$id]:-Überprüfe die Anforderungen in der Dokumentation}"
+    local solution
+    solution="$(solution_for_id "$id")"
     echo "::error title=❌ $description::$solution"
     FAIL=$((FAIL + 1))
   fi
@@ -57,7 +178,8 @@ check_workflow_exists() {
   local id="$1"
   local description="$2"
   local pattern="$3"
-  check "$id" "$description" "ls .github/workflows/$pattern 2>/dev/null | head -1"
+  # grep -q stellt sicher, dass ein leeres ls-Ergebnis auch wirklich fehlschlaegt
+  check "$id" "$description" "ls -1 .github/workflows/$pattern 2>/dev/null | grep -q ."
 }
 
 check_directory_exists() {
@@ -94,3 +216,7 @@ summary() {
     echo "::notice title=✅ Tag $day bestanden::Gratuliere! Alle Kriterien erfüllt."
   fi
 }
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  run_day_checks "$@"
+fi
