@@ -41,7 +41,7 @@ Die Branches `day_X_checkpoint` und `day_X_solution` dienen dem DevOps-Kurs als 
 
 5. Review-Feedback einarbeiten, die CI-Prüfungen abwarten und erst danach mergen.
 
-6. Den Branch nach dem Merge loeschen und den lokalen Stand aktualisieren:
+6. Den Branch nach dem Merge löschen und den lokalen Stand aktualisieren:
 
    ```bash
    git checkout main
@@ -79,7 +79,7 @@ Für das Mergen gelten folgende Regeln:
 - Mindestens eine Person aus dem Team muss den Pull Request reviewen.
 - Die CI-Prüfungen müssen erfolgreich sein.
 - Offene Review-Kommentare müssen beantwortet oder gelöst sein.
-- Der Autor entscheidet nicht allein ueber das Mergen des eigenen Pull Requests.
+- Der Autor entscheidet nicht allein über das Mergen des eigenen Pull Requests.
 - Konflikte werden vom Autor des Pull Requests mit Unterstützung der betroffenen Personen gelöst und anschliessend erneut geprüft.
 
 ## Commit-Messages
@@ -166,7 +166,7 @@ Was ist in diesem Release enthalten?
 ## Behobene Fehler
 - ...
 
-## Bekannte Einschraenkungen
+## Bekannte Einschränkungen
 - ...
 
 ## Migration und Upgrade
