@@ -1,34 +1,5 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.python-version
+# TechStyle .gitignore
+# TODO: this is incomplete — add more entries as needed
 
-# Virtual environments
-.venv/
-venv/
-env/
-
-# Flask sessions and runtime files
-flask_session/
-instance/
-*.sqlite
-*.sqlite3
-
-# Local configuration and secrets
-.env
-.env.*
-!.env.example
-
-# Tooling and OS files
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
-.ruff_cache/
 .DS_Store
-Thumbs.db
-
-# Editor settings
-.idea/
-.vscode/
+*.log
