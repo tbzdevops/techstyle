@@ -1,5 +1,9 @@
 # Day 4 Completion — CI Fundamentals & GitHub Actions
 
+## Prerequisite Files ("Vorbereitung")
+
+`day_4_checkpoint` ships without tests and without test dependencies, so the Vorbereitung step in Tag04.md is genuinely required: without `tests/`, `conftest.py` and the added `pytest` / `pytest-mock` / `flake8` entries in `requirements.txt`, the lint job fails on missing paths and the test job has nothing to run. No `__init__.py` files are needed under `tests/` — the root `conftest.py` alone makes `from app import app` resolve.
+
 ## What Was Completed
 
 ### Task 1: First CI Pipeline ✅
@@ -10,7 +14,7 @@
 ### Task 2: Automated Tests ✅
 - Created `tests/test_app.py` with unit test for the home page route
 - Created `tests/integration/test_workflow.py` with integration test for the registration flow
-- Added `conftest.py` to configure the Python path for the test runner
+- Added `conftest.py` in the project root so `pytest tests/` can import `app` (pytest puts the directory of every `conftest.py` on the Python path — without it, collection fails with `ModuleNotFoundError: No module named 'app'`)
 - Tests mock the database layer (`app.get_db`) so no real DB is needed in CI
 
 ### Task 3: Code Quality & Linter Integration ✅
@@ -25,9 +29,7 @@
 | `.github/workflows/ci.yml` | New — CI pipeline definition |
 | `tests/test_app.py` | New — unit tests |
 | `tests/integration/test_workflow.py` | New — integration tests |
-| `tests/__init__.py` | New — package marker |
-| `tests/integration/__init__.py` | New — package marker |
-| `conftest.py` | New — pytest path configuration |
+| `conftest.py` | New — makes the project root importable for pytest |
 | `requirements.txt` | Updated — added `pytest`, `pytest-mock`, `flake8` |
 
 ## Acceptance Criteria
