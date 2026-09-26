@@ -27,7 +27,9 @@ DB_PASSWORD = "admin123"
 ADMIN_PASSWORD = "admin"
 PAYMENT_API_KEY = "sk_live_abcdef1234567890"
 SMTP_PASSWORD = "mailpass99"
+asdasd
 
+asdfasdf
 
 # ─────────────────────────────────────────────
 #  Database helpers
