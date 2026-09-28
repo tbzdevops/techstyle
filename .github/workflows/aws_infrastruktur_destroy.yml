@@ -1,12 +1,12 @@
-name: AWS Infrastruktur bereitstellen
+name: AWS Infrastruktur loeschen
 
 on:
   push:
     branches:
       - day_8_solution
     paths:
-      - ".github/workflows/aws_infrastruktur.yml"
-      - "infrastruktur/**"
+      - ".github/workflows/aws_infrastruktur_destroy.yml"
+      - "infrastruktur/destroy.conf"
   workflow_dispatch:
 
 jobs:
@@ -30,17 +30,16 @@ jobs:
           echo "destroy=$DESTROY"
 
   tofu:
-    name: OpenTofu apply
+    name: OpenTofu destroy
     runs-on: ubuntu-latest
     needs: config
-    if: ${{ needs.config.outputs.destroy == 'false' }}
+    if: ${{ needs.config.outputs.destroy == 'true' }}
 
     env:
       TF_IN_AUTOMATION: "true"
       TF_VAR_student_name: day8-solution
       TOFU_STATE_BUCKET: ${{ vars.TOFU_STATE_BUCKET }}
       TOFU_STATE_KEY: techstyle/day_8_solution/infrastruktur.tfstate
-      TOFU_OUTPUTS_KEY: techstyle/day_8_solution/outputs.json
 
     steps:
       - name: Checkout
@@ -59,26 +58,10 @@ jobs:
         with:
           tofu_version: "1.8.0"
 
-      - name: Ensure OpenTofu state bucket exists
+      - name: Check OpenTofu state bucket
         run: |
           test -n "$TOFU_STATE_BUCKET" || (echo "Missing GitHub variable TOFU_STATE_BUCKET" && exit 1)
-
-          if aws s3api head-bucket --bucket "$TOFU_STATE_BUCKET" 2>/dev/null; then
-            echo "State bucket already exists: $TOFU_STATE_BUCKET"
-            exit 0
-          fi
-
-          if [ "${{ vars.AWS_REGION || 'us-east-1' }}" = "us-east-1" ]; then
-            aws s3api create-bucket --bucket "$TOFU_STATE_BUCKET"
-          else
-            aws s3api create-bucket \
-              --bucket "$TOFU_STATE_BUCKET" \
-              --create-bucket-configuration LocationConstraint=${{ vars.AWS_REGION || 'us-east-1' }}
-          fi
-
-          aws s3api put-bucket-versioning \
-            --bucket "$TOFU_STATE_BUCKET" \
-            --versioning-configuration Status=Enabled
+          aws s3api head-bucket --bucket "$TOFU_STATE_BUCKET"
 
       - name: Prepare SSH public key for cloud-init
         env:
@@ -99,26 +82,16 @@ jobs:
             -backend-config="region=${{ vars.AWS_REGION || 'us-east-1' }}" \
             -backend-config="encrypt=true"
 
-      - name: OpenTofu validate
-        working-directory: infrastruktur
-        run: tofu validate
-
-      - name: OpenTofu plan
+      - name: OpenTofu destroy plan
         working-directory: infrastruktur
         run: |
-          tofu plan \
+          tofu plan -destroy \
             -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
             -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
 
-      - name: OpenTofu apply
+      - name: OpenTofu destroy
         working-directory: infrastruktur
         run: |
-          tofu apply -auto-approve \
+          tofu destroy -auto-approve \
             -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
             -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
-
-      - name: Store OpenTofu outputs
-        working-directory: infrastruktur
-        run: |
-          tofu output -json > outputs.json
-          aws s3 cp outputs.json "s3://$TOFU_STATE_BUCKET/$TOFU_OUTPUTS_KEY"

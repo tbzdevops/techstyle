@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Name prefix for created AWS resources."
   type        = string
-  default     = "techstyle-pa4"
+  default     = "techstyle-bg"
 }
 
 variable "student_name" {
@@ -19,17 +19,22 @@ variable "student_name" {
 variable "vpc_cidr_block" {
   description = "CIDR block for the VPC."
   type        = string
-  default     = "10.40.0.0/16"
+  default     = "10.30.0.0/16"
 }
 
-variable "public_subnet_cidr_block" {
-  description = "CIDR block for the public subnet."
-  type        = string
-  default     = "10.40.1.0/24"
+variable "public_subnet_cidr_blocks" {
+  description = "CIDR blocks for the two public subnets used by the ALB."
+  type        = list(string)
+  default     = ["10.30.1.0/24", "10.30.2.0/24"]
+
+  validation {
+    condition     = length(var.public_subnet_cidr_blocks) >= 2
+    error_message = "At least two public subnet CIDR blocks are required for the Application Load Balancer."
+  }
 }
 
 variable "instance_type" {
-  description = "EC2 instance type."
+  description = "EC2 instance type for blue and green."
   type        = string
   default     = "t3.micro"
 }
@@ -41,18 +46,19 @@ variable "root_volume_size" {
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to an SSH public key that will be added to the ubuntu user's authorized_keys via cloud-init."
+  description = "Optional path to an SSH public key that will be added to the ubuntu user's authorized_keys via cloud-init."
   type        = string
+  default     = ""
 }
 
 variable "allowed_ssh_cidr_blocks" {
-  description = "CIDR blocks allowed to connect via SSH. Restrict this to your own public IP when possible."
+  description = "CIDR blocks that are allowed to connect via SSH."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }
 
-variable "app_cidr_blocks" {
-  description = "CIDR blocks allowed to access the TechStyle app on port 5001."
+variable "direct_app_cidr_blocks" {
+  description = "CIDR blocks allowed to access EC2 port 5001 directly for deployment verification."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }

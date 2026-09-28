@@ -27,7 +27,8 @@ locals {
     ManagedBy = "terraform"
   }
 
-  ssh_authorized_key = trimspace(file(pathexpand(var.ssh_public_key_path)))
+  colors             = toset(["blue", "green"])
+  ssh_authorized_key = var.ssh_public_key_path != "" ? trimspace(file(pathexpand(var.ssh_public_key_path))) : ""
 }
 
 resource "aws_vpc" "main" {
@@ -49,13 +50,15 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_subnet" "public" {
+  count = 2
+
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidr_block
-  availability_zone       = data.aws_availability_zones.available.names[0]
+  cidr_block              = var.public_subnet_cidr_blocks[count.index]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
   tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.student_name}-public-subnet"
+    Name = "${var.project_name}-${var.student_name}-public-${count.index + 1}"
   })
 }
 
@@ -73,13 +76,41 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+  count = 2
+
+  subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_security_group" "techstyle" {
-  name        = "${var.project_name}-${var.student_name}-sg"
-  description = "Security group for TechStyle Praxisauftrag 4"
+resource "aws_security_group" "alb" {
+  name        = "${var.project_name}-${var.student_name}-alb-sg"
+  description = "Allow HTTP traffic to the TechStyle ALB."
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP from internet"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "All outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-${var.student_name}-alb-sg"
+  })
+}
+
+resource "aws_security_group" "app" {
+  name        = "${var.project_name}-${var.student_name}-app-sg"
+  description = "Allow SSH and app traffic for blue-green EC2 instances."
   vpc_id      = aws_vpc.main.id
 
   dynamic "ingress" {
@@ -95,15 +126,23 @@ resource "aws_security_group" "techstyle" {
   }
 
   ingress {
-    description = "TechStyle Flask app"
+    description     = "App traffic from ALB"
+    from_port       = 5001
+    to_port         = 5001
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  ingress {
+    description = "Direct app access for pipeline health checks"
     from_port   = 5001
     to_port     = 5001
     protocol    = "tcp"
-    cidr_blocks = var.app_cidr_blocks
+    cidr_blocks = var.direct_app_cidr_blocks
   }
 
   egress {
-    description = "Allow outbound traffic"
+    description = "All outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -111,18 +150,21 @@ resource "aws_security_group" "techstyle" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.student_name}-sg"
+    Name = "${var.project_name}-${var.student_name}-app-sg"
   })
 }
 
-resource "aws_instance" "techstyle" {
+resource "aws_instance" "app" {
+  for_each = local.colors
+
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
-  subnet_id                   = aws_subnet.public.id
-  vpc_security_group_ids      = [aws_security_group.techstyle.id]
+  subnet_id                   = each.key == "blue" ? aws_subnet.public[0].id : aws_subnet.public[1].id
+  vpc_security_group_ids      = [aws_security_group.app.id]
   associate_public_ip_address = true
   user_data = templatefile("${path.module}/${var.cloud_init_path}", {
     ssh_authorized_key = local.ssh_authorized_key
+    color              = each.key
   })
   user_data_replace_on_change = true
 
@@ -132,6 +174,62 @@ resource "aws_instance" "techstyle" {
   }
 
   tags = merge(local.common_tags, {
-    Name = "${var.project_name}-${var.student_name}-ec2"
+    Name  = "${var.project_name}-${var.student_name}-${each.key}"
+    Color = each.key
   })
+}
+
+resource "aws_lb" "app" {
+  name               = "${var.project_name}-${var.student_name}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb.id]
+  subnets            = aws_subnet.public[*].id
+
+  tags = merge(local.common_tags, {
+    Name = "${var.project_name}-${var.student_name}-alb"
+  })
+}
+
+resource "aws_lb_target_group" "app" {
+  for_each = local.colors
+
+  name     = "${var.project_name}-${var.student_name}-${each.key}"
+  port     = 5001
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  health_check {
+    enabled             = true
+    path                = "/api/products"
+    matcher             = "200"
+    interval            = 15
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = merge(local.common_tags, {
+    Name  = "${var.project_name}-${var.student_name}-${each.key}-tg"
+    Color = each.key
+  })
+}
+
+resource "aws_lb_target_group_attachment" "app" {
+  for_each = local.colors
+
+  target_group_arn = aws_lb_target_group.app[each.key].arn
+  target_id        = aws_instance.app[each.key].id
+  port             = 5001
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.app.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app["blue"].arn
+  }
 }
