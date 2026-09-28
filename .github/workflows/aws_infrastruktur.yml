@@ -1,0 +1,62 @@
+name: AWS Infrastruktur bereitstellen
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tofu:
+    name: OpenTofu apply
+    runs-on: ubuntu-latest
+
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_VAR_student_name: gha-${{ github.run_number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.8.0"
+
+      - name: Prepare SSH public key for cloud-init
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          test -n "$EC2_SSH_KEY" || (echo "Missing GitHub secret EC2_SSH_KEY" && exit 1)
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keygen -y -f ~/.ssh/ec2_key > /tmp/techstyle_ec2.pub
+
+      - name: OpenTofu init
+        working-directory: infrastruktur
+        run: tofu init
+
+      - name: OpenTofu validate
+        working-directory: infrastruktur
+        run: tofu validate
+
+      - name: OpenTofu plan
+        working-directory: infrastruktur
+        run: |
+          tofu plan \
+            -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
+            -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
+
+      - name: OpenTofu apply
+        working-directory: infrastruktur
+        run: |
+          tofu apply -auto-approve \
+            -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
+            -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
