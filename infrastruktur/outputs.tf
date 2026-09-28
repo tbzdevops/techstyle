@@ -1,3 +1,8 @@
+output "aws_region" {
+  description = "AWS region used for the infrastructure."
+  value       = var.aws_region
+}
+
 output "blue_public_ip" {
   description = "Public IPv4 address of the blue EC2 instance."
   value       = aws_instance.app["blue"].public_ip
