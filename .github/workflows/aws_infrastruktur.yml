@@ -1,6 +1,12 @@
 name: AWS Infrastruktur bereitstellen
 
 on:
+  push:
+    branches:
+      - day_8_solution
+    paths:
+      - ".github/workflows/aws_infrastruktur.yml"
+      - "infrastruktur/**"
   workflow_dispatch:
     inputs:
       action:
@@ -14,7 +20,7 @@ on:
 
 jobs:
   tofu:
-    name: OpenTofu ${{ inputs.action }}
+    name: OpenTofu ${{ github.event_name == 'push' && 'apply' || inputs.action }}
     runs-on: ubuntu-latest
 
     env:
@@ -57,7 +63,7 @@ jobs:
         run: tofu validate
 
       - name: OpenTofu plan
-        if: ${{ inputs.action == 'apply' }}
+        if: ${{ github.event_name == 'push' || inputs.action == 'apply' }}
         working-directory: infrastruktur
         run: |
           tofu plan \
@@ -65,7 +71,7 @@ jobs:
             -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
 
       - name: OpenTofu apply
-        if: ${{ inputs.action == 'apply' }}
+        if: ${{ github.event_name == 'push' || inputs.action == 'apply' }}
         working-directory: infrastruktur
         run: |
           tofu apply -auto-approve \
