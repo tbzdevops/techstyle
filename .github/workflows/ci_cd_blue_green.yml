@@ -6,6 +6,7 @@ on:
       - day_8_solution
     paths:
       - ".github/workflows/ci_cd_blue_green.yml"
+      - "infrastruktur/blue_green.conf"
       - "app.py"
       - "seed_data.py"
       - "requirements.txt"
@@ -15,25 +16,6 @@ on:
       - "templates/**"
       - "static/**"
       - "tests/**"
-  workflow_dispatch:
-    inputs:
-      action:
-        description: "Blue-green action"
-        required: true
-        default: "deploy_only"
-        type: choice
-        options:
-          - deploy_only
-          - deploy_and_switch
-          - switch_only
-      deploy_target:
-        description: "Target environment"
-        required: true
-        default: "green"
-        type: choice
-        options:
-          - blue
-          - green
 
 jobs:
   config:
@@ -61,22 +43,28 @@ jobs:
 
       - name: Read pipeline configuration
         id: config
-        env:
-          REQUESTED_ACTION: ${{ inputs.action || 'deploy_only' }}
-          REQUESTED_TARGET: ${{ inputs.deploy_target || 'green' }}
         run: |
           test -f infrastruktur/destroy.conf || (echo "Missing infrastruktur/destroy.conf" && exit 1)
+          test -f infrastruktur/blue_green.conf || (echo "Missing infrastruktur/blue_green.conf" && exit 1)
           grep -Eq '^destroy=(true|false)$' infrastruktur/destroy.conf || (echo "destroy.conf must contain destroy=true or destroy=false" && exit 1)
+          grep -Eq '^action=(deploy_only|deploy_and_switch|switch_only)$' infrastruktur/blue_green.conf || (echo "blue_green.conf must contain action=deploy_only, action=deploy_and_switch or action=switch_only" && exit 1)
+          grep -Eq '^deploy_target=(blue|green)$' infrastruktur/blue_green.conf || (echo "blue_green.conf must contain deploy_target=blue or deploy_target=green" && exit 1)
 
           DESTROY="$(cut -d= -f2 infrastruktur/destroy.conf)"
+          ACTION="$(grep '^action=' infrastruktur/blue_green.conf | cut -d= -f2)"
+          DEPLOY_TARGET="$(grep '^deploy_target=' infrastruktur/blue_green.conf | cut -d= -f2)"
+
           echo "destroy=$DESTROY" >> "$GITHUB_OUTPUT"
-          echo "action=$REQUESTED_ACTION" >> "$GITHUB_OUTPUT"
-          echo "deploy_target=$REQUESTED_TARGET" >> "$GITHUB_OUTPUT"
+          echo "action=$ACTION" >> "$GITHUB_OUTPUT"
+          echo "deploy_target=$DEPLOY_TARGET" >> "$GITHUB_OUTPUT"
 
           if [ "$DESTROY" != "false" ]; then
             echo "destroy.conf is set to destroy=true. Deployment is blocked."
             exit 1
           fi
+
+          echo "action=$ACTION"
+          echo "deploy_target=$DEPLOY_TARGET"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
