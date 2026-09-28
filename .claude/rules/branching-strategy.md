@@ -53,7 +53,7 @@ Below is a quick reference of what each day covers and what should be in the sol
 ### **Day 1: DevOps Kickoff** ✅
 - **Checkpoint:** Main branch (clean Flask app)
 - **Solution:** Application running, project documentation
-- **File:** `DAY_1_COMPLETION.md`
+- **File:** `docs/DAY_1_COMPLETION.md`
 - **Status:** ✅ CREATED
 
 ### **Day 2: Git & Code Repository**
@@ -64,7 +64,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Branching strategy documentation
   - `.gitignore` and `.gitattributes` if needed
 - **Files to Add:**
-  - `DAY_2_COMPLETION.md`
+  - `docs/DAY_2_COMPLETION.md`
   - Git setup documentation
   - Version tracking in `VERSION` file
 
@@ -75,7 +75,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Break down requirements into stories
   - Kanban board setup documentation
 - **Files to Add:**
-  - `DAY_3_COMPLETION.md`
+  - `docs/DAY_3_COMPLETION.md`
   - Feature slicing documentation
   - MVP definitions
 
@@ -86,7 +86,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Linting and testing steps
   - Artifact creation
 - **Files to Add:**
-  - `DAY_4_COMPLETION.md`
+  - `docs/DAY_4_COMPLETION.md`
   - CI workflow file
   - Test files (if needed)
 
@@ -97,7 +97,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Add Python package creation
   - Artifact storage configuration
 - **Files to Add:**
-  - `DAY_5_COMPLETION.md`
+  - `docs/DAY_5_COMPLETION.md`
   - Build script enhancements
 
 ### **Day 6: Test Automation**
@@ -107,7 +107,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Integrate SonarQube configuration
   - Quality gates in pipeline
 - **Files to Add:**
-  - `DAY_6_COMPLETION.md`
+  - `docs/DAY_6_COMPLETION.md`
   - Test files
   - SonarQube config
 
@@ -118,7 +118,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Deployment strategies (Blue/Green, Canary)
   - Rollback procedures
 - **Files to Add:**
-  - `DAY_7_COMPLETION.md`
+  - `docs/DAY_7_COMPLETION.md`
   - Deployment scripts
   - Strategy documentation
 
@@ -128,7 +128,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Complete all practical assignments from Days 1-7
   - Fix any issues
 - **Files to Add:**
-  - `DAY_8_COMPLETION.md` (verification checklist)
+  - `docs/DAY_8_COMPLETION.md` (verification checklist)
 
 ### **Day 9: CALMS Framework & Monitoring Setup**
 - **Checkpoint:** From Day 8 solution
@@ -137,7 +137,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Basic monitoring dashboard
   - Alerting rules
 - **Files to Add:**
-  - `DAY_9_COMPLETION.md`
+  - `docs/DAY_9_COMPLETION.md`
   - `prometheus.yml`
   - `grafana-dashboards/`
 
@@ -148,7 +148,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Grafana dashboards for application metrics
   - Alert configurations
 - **Files to Add:**
-  - `DAY_10_COMPLETION.md`
+  - `docs/DAY_10_COMPLETION.md`
   - Grafana dashboard definitions
   - Alert rules
 
@@ -159,7 +159,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - SAST/SCA configuration
   - Security in CI pipeline
 - **Files to Add:**
-  - `DAY_11_COMPLETION.md`
+  - `docs/DAY_11_COMPLETION.md`
   - `.snyk` configuration
   - Security policies
 
@@ -170,7 +170,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - High availability setup documentation
   - Load testing configuration
 - **Files to Add:**
-  - `DAY_12_COMPLETION.md`
+  - `docs/DAY_12_COMPLETION.md`
   - HA configuration docs
 
 ### **Day 13: Auto Scaling & Multi-Region**
@@ -180,7 +180,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Multi-region deployment configuration
   - Failover strategies
 - **Files to Add:**
-  - `DAY_13_COMPLETION.md`
+  - `docs/DAY_13_COMPLETION.md`
   - Scaling configuration
   - Infrastructure diagrams
 
@@ -191,7 +191,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Build Docker image
   - Docker best practices implementation
 - **Files to Add:**
-  - `DAY_14_COMPLETION.md`
+  - `docs/DAY_14_COMPLETION.md`
   - `Dockerfile`
   - `.dockerignore`
 
@@ -202,7 +202,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - CI pipeline with container builds
   - Docker compose configuration (optional)
 - **Files to Add:**
-  - `DAY_15_COMPLETION.md`
+  - `docs/DAY_15_COMPLETION.md`
   - `docker-compose.yml` (optional)
   - Registry configuration
 
@@ -212,7 +212,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Complete all practical work from Days 1-15
   - Buffer for catching up
 - **Files to Add:**
-  - `DAY_16_COMPLETION.md` (verification)
+  - `docs/DAY_16_COMPLETION.md` (verification)
 
 ### **Day 17: Infrastructure as Code (Terraform)**
 - **Checkpoint:** From Day 16 solution
@@ -221,7 +221,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - State management setup (S3 + DynamoDB)
   - Ansible playbooks for configuration management
 - **Files to Add:**
-  - `DAY_17_COMPLETION.md`
+  - `docs/DAY_17_COMPLETION.md`
   - `terraform/` directory with `.tf` files
   - `ansible/` directory with playbooks
 
@@ -232,7 +232,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Kubernetes manifest preparation
   - GitOps workflow setup
 - **Files to Add:**
-  - `DAY_18_COMPLETION.md`
+  - `docs/DAY_18_COMPLETION.md`
   - `argocd/` directory with configs
   - Kubernetes manifests (`k8s/` directory)
 
@@ -243,7 +243,7 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Multi-environment deployments
   - Sync policies and notifications
 - **Files to Add:**
-  - `DAY_19_COMPLETION.md`
+  - `docs/DAY_19_COMPLETION.md`
   - Additional ArgoCD configurations
 
 ### **Day 20: DevOps Transformation Review**
@@ -254,9 +254,9 @@ Below is a quick reference of what each day covers and what should be in the sol
   - Lessons learned
   - Future improvements roadmap
 - **Files to Add:**
-  - `DAY_20_COMPLETION.md`
-  - `TRANSFORMATION_REVIEW.md`
-  - `LESSONS_LEARNED.md`
+  - `docs/DAY_20_COMPLETION.md`
+  - `docs/TRANSFORMATION_REVIEW.md`
+  - `docs/LESSONS_LEARNED.md`
 
 ## Creating a Complete Branch Set
 
