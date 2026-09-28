@@ -61,9 +61,4 @@ variable "cloud_init_path" {
   description = "Path to the cloud-init file, relative to this Terraform folder."
   type        = string
   default     = "cloud-init.yml"
-
-  validation {
-    condition     = fileexists("${path.module}/${var.cloud_init_path}")
-    error_message = "cloud_init_path must point to an existing cloud-init file."
-  }
 }
