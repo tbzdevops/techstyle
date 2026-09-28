@@ -2,10 +2,19 @@ name: AWS Infrastruktur bereitstellen
 
 on:
   workflow_dispatch:
+    inputs:
+      action:
+        description: "OpenTofu Aktion"
+        required: true
+        default: "apply"
+        type: choice
+        options:
+          - apply
+          - destroy
 
 jobs:
   tofu:
-    name: OpenTofu apply
+    name: OpenTofu ${{ inputs.action }}
     runs-on: ubuntu-latest
 
     env:
@@ -48,6 +57,7 @@ jobs:
         run: tofu validate
 
       - name: OpenTofu plan
+        if: ${{ inputs.action == 'apply' }}
         working-directory: infrastruktur
         run: |
           tofu plan \
@@ -55,8 +65,25 @@ jobs:
             -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
 
       - name: OpenTofu apply
+        if: ${{ inputs.action == 'apply' }}
         working-directory: infrastruktur
         run: |
           tofu apply -auto-approve \
+            -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
+            -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
+
+      - name: OpenTofu destroy plan
+        if: ${{ inputs.action == 'destroy' }}
+        working-directory: infrastruktur
+        run: |
+          tofu plan -destroy \
+            -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
+            -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
+
+      - name: OpenTofu destroy
+        if: ${{ inputs.action == 'destroy' }}
+        working-directory: infrastruktur
+        run: |
+          tofu destroy -auto-approve \
             -var="aws_region=${{ vars.AWS_REGION || 'us-east-1' }}" \
             -var="ssh_public_key_path=/tmp/techstyle_ec2.pub"
