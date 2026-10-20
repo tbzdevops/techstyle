@@ -64,23 +64,23 @@ jobs:
     # Skips gracefully until SONAR_HOST_URL / SONAR_TOKEN repo secrets are set
     # (i.e. until the self-hosted SonarQube EC2 instance from the Day 7 Praxis
     # exists). See docs/DAY_7_COMPLETION.md for setup.
-    if: ${{ secrets.SONAR_HOST_URL != '' }}
+    #if: ${{ secrets.SONAR_HOST_URL != '' }}
 
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    #steps:
+    #  - uses: actions/checkout@v4
+    #    with:
+    #      fetch-depth: 0
 
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
+    #  - name: Download coverage report
+    #    uses: actions/download-artifact@v4
+    #    with:
+    #      name: coverage-report
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    #  - name: SonarQube Scan
+    #    uses: SonarSource/sonarqube-scan-action@v4
+    #    env:
+    #      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   build:
     name: Build Package Artifact
