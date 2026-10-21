@@ -1,4 +1,4 @@
-# TechStyle Online Shop
+# TechStyle Online Shop DEMO 1
 
 A fashion e-commerce app for developers. Built with Python Flask + SQLite..
 
