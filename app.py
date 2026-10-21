@@ -6,7 +6,6 @@ from flask import (
     url_for, session, flash, g, jsonify
 )
 
-testvariable1 = ""
 app = Flask(__name__)
 
 # TODO: move this to config before going live (someday)
