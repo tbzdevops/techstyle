@@ -7,9 +7,11 @@ name = "techstyle"
 version = "1.0.0"
 description = "TechStyle — Flask e-commerce reference app for the DevOps & Infrastructure module"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "Flask>=2.2",
+    "SQLAlchemy==2.1.6",
+    "psycopg[binary]==3.3.6",
 ]
 
 [project.urls]
@@ -19,4 +21,4 @@ Repository = "https://github.com/tbzdevops/techstyle"
 run-techstyle = "app:main"
 
 [tool.setuptools]
-py-modules = ["app"]
+py-modules = ["app", "database", "seed_data"]

@@ -1,5 +1,14 @@
 # TechStyle Online Shop
 
+## Tag 13 – Container-Musterlösung
+
+Die vollständige Anleitung mit Architekturvergleich, Voraussetzungen, Startbefehlen,
+Abnahmetests und GHCR-Veröffentlichung findest Du in
+[docs/DAY_13_COMPLETION.md](docs/DAY_13_COMPLETION.md).
+Dieser Branch ergänzt den Stand von `day_12_solution` um einen lokalen
+Compose-Stack mit Webanwendung und PostgreSQL. Der folgende historische Quick Start
+beschreibt die Ausführung ohne Container mit SQLite.
+
 A fashion e-commerce app for developers. Built with Python Flask + SQLite..
 
 ## Quick Start
@@ -79,7 +88,7 @@ The GitHub Actions pipeline (`.github/workflows/ci.yml`) builds this artifact au
 
 ## Notes
 
-- Database is stored at `/tmp/techstyle.db` — the path is hardcoded in `app.py` and `seed_data.py`
+- Without `DATABASE_URL`, the database is stored in the operating system's temporary directory as `techstyle.db`. Compose uses PostgreSQL instead.
 - **Windows:** there is no `/tmp`, so Python resolves that path to `C:\tmp\techstyle.db` (the `tmp`
   folder on the drive you are working from). If the folder is missing, both `seed_data.py` and
   `app.py` abort with `sqlite3.OperationalError: unable to open database file`. `run_dev.ps1`

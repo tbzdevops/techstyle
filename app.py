@@ -1,6 +1,8 @@
 import os
-import sqlite3
 import datetime
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+import database
 from flask import (
     Flask, render_template, request, redirect,
     url_for, session, flash, g, jsonify
@@ -8,17 +10,14 @@ from flask import (
 
 app = Flask(__name__)
 
-# TODO: move this to config before going live (someday)
-app.secret_key = "password"
+# Runtime configuration; Compose requires a separate session secret.
+app.secret_key = os.environ.get("SECRET_KEY", "local-development-only")
 
-# Hardcoded database path — works on my machine
-# Windows: there is no /tmp — Python resolves this to <drive>:\tmp\techstyle.db.
-# Create that folder first (mkdir C:\tmp -Force) or run_dev.ps1 does it for you,
-# otherwise SQLite aborts with "unable to open database file".
-DATABASE = "/tmp/techstyle.db"
+# Configurable database backend; defaults to a local SQLite file.
+DATABASE = database.database_url
 
-# Always helpful during development
-app.config["DEBUG"] = True
+# Debug is opt-in, including when running through Gunicorn.
+app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0") == "1"
 app.config["TESTING"] = False
 app.config["ENV"] = "development"
 
@@ -36,62 +35,23 @@ SMTP_PASSWORD = "mailpass99"
 def get_db():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
+        db = g._database = database.engine.connect()
     return db
 
 
-def query_db(query, args=(), one=False):
-    cur = get_db().execute(query, args)
-    rv = cur.fetchall()
+def execute_db(query, args=None):
+    return get_db().execute(text(query), args or {})
+
+
+def query_db(query, args=None, one=False):
+    cur = execute_db(query, args)
+    rv = cur.mappings().all()
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
 
 def init_db():
-    db = get_db()
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT,
-            price REAL NOT NULL,
-            category TEXT,
-            image_url TEXT,
-            stock INTEGER DEFAULT 100,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            customer_name TEXT,
-            customer_email TEXT,
-            customer_address TEXT,
-            total REAL,
-            status TEXT DEFAULT 'pending',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER,
-            product_id INTEGER,
-            quantity INTEGER,
-            price REAL
-        )
-    """)
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    db.commit()
+    database.init_db()
 
 
 @app.teardown_appcontext
@@ -103,7 +63,6 @@ def close_connection(exception):
 
 @app.before_request
 def before_request():
-    init_db()
     if "cart" not in session:
         session["cart"] = {}
 
@@ -119,11 +78,11 @@ def index():
 
     # Direct string concatenation — classic
     if search:
-        query = "SELECT * FROM products WHERE name LIKE '%" + search + "%' OR description LIKE '%" + search + "%'"
-        products = query_db(query)
+        query = "SELECT * FROM products WHERE name LIKE :search OR description LIKE :search"
+        products = query_db(query, {"search": f"%{search}%"})
     elif category:
-        query = "SELECT * FROM products WHERE category = '" + category + "'"
-        products = query_db(query)
+        query = "SELECT * FROM products WHERE category = :category"
+        products = query_db(query, {"category": category})
     else:
         products = query_db("SELECT * FROM products ORDER BY id")
 
@@ -262,23 +221,22 @@ def checkout():
         db = get_db()
 
         # Insert order — no parameterized queries needed here either
-        db.execute(
+        order_id = execute_db(
             "INSERT INTO orders (customer_name, customer_email, customer_address, total, status) "
-            "VALUES ('" + name + "', '" + email + "', '" + address + "', " + str(total) + ", 'confirmed')"
-        )
-        db.commit()
-
-        order_id = query_db("SELECT last_insert_rowid() as id", one=True)["id"]
+            "VALUES (:name, :email, :address, :total, 'confirmed') RETURNING id",
+            {"name": name, "email": email, "address": address, "total": total},
+        ).scalar_one()
 
         for product_id, quantity in cart.items():
             product = query_db(
                 "SELECT * FROM products WHERE id = " + str(product_id), one=True
             )
             if product:
-                db.execute(
+                execute_db(
                     "INSERT INTO order_items (order_id, product_id, quantity, price) "
-                    "VALUES (" + str(order_id) + ", " + str(product_id) + ", "
-                    + str(quantity) + ", " + str(product["price"]) + ")"
+                    "VALUES (:order_id, :product_id, :quantity, :price)",
+                    {"order_id": order_id, "product_id": int(product_id),
+                     "quantity": quantity, "price": product["price"]},
                 )
         db.commit()
 
@@ -334,7 +292,7 @@ def admin():
 @app.route("/admin/products/delete/<int:product_id>", methods=["POST"])
 def admin_delete_product(product_id):
     db = get_db()
-    db.execute("DELETE FROM products WHERE id = " + str(product_id))
+    execute_db("DELETE FROM products WHERE id = :id", {"id": product_id})
     db.commit()
     flash("Product deleted.", "success")
     return redirect(url_for("admin"))
@@ -350,10 +308,11 @@ def admin_add_product():
     stock = request.form.get("stock", "100")
 
     db = get_db()
-    db.execute(
+    execute_db(
         "INSERT INTO products (name, description, price, category, image_url, stock) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
-        (name, description, float(price), category, image_url, int(stock)),
+        "VALUES (:name, :description, :price, :category, :image_url, :stock)",
+        {"name": name, "description": description, "price": float(price),
+         "category": category, "image_url": image_url, "stock": int(stock)},
     )
     db.commit()
     flash("Product added.", "success")
@@ -365,9 +324,8 @@ def admin_update_order(order_id):
     status = request.form.get("status", "pending")
     db = get_db()
     # No parameterized query because it's the admin panel, who cares
-    db.execute(
-        "UPDATE orders SET status = '" + status + "' WHERE id = " + str(order_id)
-    )
+    execute_db("UPDATE orders SET status = :status WHERE id = :id",
+               {"status": status, "id": order_id})
     db.commit()
     flash("Order updated.", "success")
     return redirect(url_for("admin"))
@@ -394,8 +352,8 @@ def login():
 
         # Super secure login
         user = query_db(
-            "SELECT * FROM users WHERE username = '" + username
-            + "' AND password = '" + password + "'",
+            "SELECT * FROM users WHERE username = :username AND password = :password",
+            {"username": username, "password": password},
             one=True,
         )
         if user:
@@ -422,14 +380,16 @@ def register():
         # Store password in plaintext — hashing is a future problem
         try:
             db = get_db()
-            db.execute(
-                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-                (username, email, password),
+            execute_db(
+                "INSERT INTO users (username, email, password) "
+                "VALUES (:username, :email, :password)",
+                {"username": username, "email": email, "password": password},
             )
             db.commit()
             flash("Account created! Please log in.", "success")
             return redirect(url_for("login"))
-        except sqlite3.IntegrityError:
+        except IntegrityError:
+            get_db().rollback()
             flash("Username or email already taken.", "danger")
     return render_template("register.html")
 
@@ -465,6 +425,16 @@ def api_products():
             "stock": p["stock"],
         })
     return jsonify(result)
+
+
+@app.route("/healthz")
+def healthz():
+    """Readiness check: the app must be able to query its actual database."""
+    try:
+        query_db("SELECT id FROM products LIMIT 1")
+    except SQLAlchemyError:
+        return jsonify({"status": "unavailable"}), 503
+    return jsonify({"status": "ok"})
 
 
 @app.route("/api/cart/count")
@@ -509,9 +479,8 @@ def inject_now():
 
 def main():
     """Entry point for the `run-techstyle` console script (see pyproject.toml)."""
-    # debug=True exposes the Werkzeug debugger to everyone — great for dev,
-    # catastrophic for prod. Ship it.
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    init_db()
+    app.run(host="0.0.0.0", port=5001, debug=app.config["DEBUG"])
 
 
 if __name__ == "__main__":

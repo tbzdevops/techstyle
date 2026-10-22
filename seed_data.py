@@ -5,13 +5,9 @@ Run directly:   python seed_data.py
 Or from Flask:  import seed_data; seed_data.seed()
 """
 
-import sqlite3
-import os
-
-# Windows: there is no /tmp — Python resolves this to <drive>:\tmp\techstyle.db.
-# Create that folder first (mkdir C:\tmp -Force) or run_dev.ps1 does it for you,
-# otherwise SQLite aborts with "unable to open database file".
-DATABASE = "/tmp/techstyle.db"
+import argparse
+from sqlalchemy import select
+import database
 
 PRODUCTS = [
     # ── Hoodies ──────────────────────────────────────────────────────────────
@@ -184,38 +180,22 @@ PRODUCTS = [
 ]
 
 
-def seed():
-    db = sqlite3.connect(DATABASE)
-    cur = db.cursor()
-
-    # Ensure table exists
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT,
-            price REAL NOT NULL,
-            category TEXT,
-            image_url TEXT,
-            stock INTEGER DEFAULT 100,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # Clear existing products before re-seeding
-    cur.execute("DELETE FROM products")
-
-    for p in PRODUCTS:
-        cur.execute(
-            "INSERT INTO products (name, description, price, category, image_url, stock) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (p["name"], p["description"], p["price"], p["category"], p["image_url"], p["stock"]),
-        )
-
-    db.commit()
-    db.close()
-    print(f"Seeded {len(PRODUCTS)} products into {DATABASE}")
+def seed(reset=True):
+    """Explicit seed resets products; --if-empty preserves data on restarts."""
+    database.init_db()
+    with database.engine.begin() as db:
+        if not reset and db.execute(select(database.products.c.id).limit(1)).first():
+            print("Products already exist; seed skipped.")
+            return
+        if reset:
+            db.execute(database.products.delete())
+        db.execute(database.products.insert(), PRODUCTS)
+    print(f"Seeded {len(PRODUCTS)} products.")
 
 
 if __name__ == "__main__":
-    seed()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--if-empty", action="store_true",
+                        help="Only add products when the products table is empty")
+    args = parser.parse_args()
+    seed(reset=not args.if_empty)

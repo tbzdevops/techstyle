@@ -6,7 +6,8 @@ Werkzeug
 click
 itsdangerous
 MarkupSafe
-SQLAlchemy
+SQLAlchemy==2.1.6
+psycopg[binary]==3.3.6
 gunicorn
 python-dotenv
 requests
