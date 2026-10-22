@@ -144,7 +144,7 @@ Zum Stoppen genügt `docker compose --env-file .env.container down`. **`down --v
 
 ## Prüfstand bei der Umsetzung
 
-Lokal geprüft: sechs Anwendungstests mit echter SQLite-Datenbank, separater Funktionstest mit einem temporären PostgreSQL-15-Cluster (Katalog, Checkout, Registrierung, Duplikatbehandlung, Anmeldung und datenerhaltende Initialisierung), Python-Linting, Workflow-Prüfung mit actionlint und Paketbuild. Die lokale Python-Version war 3.14. Der Containerworkflow prüft dagegen die vorgesehene Kombination Python 3.11 / PostgreSQL 17 unter Linux. Ein lokaler Dockerlauf war mangels laufender Engine nicht möglich; der Status des tatsächlichen Containerlaufs und der GHCR-Veröffentlichung ist in GitHub Actions zu prüfen.
+Lokal geprüft: sieben Anwendungstests mit echter SQLite-Datenbank, separater Funktionstest mit einem temporären PostgreSQL-15-Cluster (Katalog, Checkout, Registrierung, Duplikatbehandlung, Anmeldung und datenerhaltende Initialisierung), Python-Linting, Workflow-Prüfung mit actionlint und Paketbuild. Die lokale Python-Version war 3.14. Der Containerworkflow prüft dagegen die vorgesehene Kombination Python 3.11 / PostgreSQL 17 unter Linux. Ein lokaler Dockerlauf war mangels laufender Engine nicht möglich; der Status des tatsächlichen Containerlaufs und der GHCR-Veröffentlichung ist in GitHub Actions zu prüfen.
 
 ## Quellen
 

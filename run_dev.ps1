@@ -3,23 +3,11 @@
 # Usage: powershell -ExecutionPolicy Bypass -File .\run_dev.ps1
 #
 # On first run:  creates .venv, installs dependencies, seeds the DB.
-# On later runs: reuses the existing .venv and skips seeding if the DB exists.
+# On later runs: reuses the existing .venv and preserves existing products in the configured database.
 
 $ErrorActionPreference = "Stop"
 
 $VenvDir = ".venv"
-
-# The app hardcodes the database as "/tmp/techstyle.db". Windows has no /tmp,
-# so Python resolves that to <current drive>:\tmp\techstyle.db — and SQLite
-# fails with "unable to open database file" if that folder is missing.
-$TmpDir = Join-Path (Get-Location).Drive.Root "tmp"
-$DbPath = Join-Path $TmpDir "techstyle.db"
-
-# -- 0. Make sure the tmp folder the app expects exists ---------------
-if (-not (Test-Path $TmpDir)) {
-  Write-Host "--> Creating $TmpDir (the app expects /tmp to exist)..."
-  New-Item -ItemType Directory -Path $TmpDir | Out-Null
-}
 
 # -- 1. Create virtual environment if it doesn't exist ----------------
 if (-not (Test-Path $VenvDir)) {
@@ -47,14 +35,9 @@ Write-Host "--> Installing dependencies..."
 python -m pip install --quiet --upgrade pip
 python -m pip install --quiet -r requirements.txt
 
-# -- 4. Seed the database (only if it doesn't exist yet) --------------
-if (-not (Test-Path $DbPath)) {
-  Write-Host "--> Seeding database..."
-  python seed_data.py
-} else {
-  Write-Host "--> Database already exists, skipping seed."
-  Write-Host "    (Delete $DbPath and re-run to start fresh.)"
-}
+# -- 4. Initialise the configured backend without resetting products ---
+python seed_data.py --if-empty
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 # -- 5. Start the development server ----------------------------------
 Write-Host ""

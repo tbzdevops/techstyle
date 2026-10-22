@@ -4,12 +4,11 @@
 # Usage: ./run_dev.sh
 #
 # On first run:  creates .venv, installs dependencies, seeds the DB.
-# On later runs: reuses the existing .venv and skips seeding if the DB exists.
+# On later runs: reuses the existing .venv and preserves existing products in the configured database.
 
 set -e
 
 VENV_DIR=".venv"
-DB_PATH="/tmp/techstyle.db"
 
 # ── 1. Create virtual environment if it doesn't exist ──────────────
 if [ ! -d "$VENV_DIR" ]; then
@@ -25,14 +24,8 @@ echo "--> Installing dependencies..."
 pip install --quiet --upgrade pip
 pip install --quiet -r requirements.txt
 
-# ── 4. Seed the database (only if it doesn't exist yet) ────────────
-if [ ! -f "$DB_PATH" ]; then
-  echo "--> Seeding database..."
-  python seed_data.py
-else
-  echo "--> Database already exists, skipping seed."
-  echo "    (Delete $DB_PATH and re-run to start fresh.)"
-fi
+# Initialise the configured backend without resetting products.
+python seed_data.py --if-empty
 
 # ── 5. Start the development server ───────────────────────────────
 echo ""

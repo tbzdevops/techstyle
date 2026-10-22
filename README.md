@@ -44,10 +44,6 @@ python app.py
 **Windows (PowerShell)**
 
 ```powershell
-# The app expects a /tmp folder for the database (see Notes) — create it first.
-# Use the drive your repo lives on, e.g. D:\tmp if you work from D:.
-mkdir C:\tmp -Force
-
 python -m venv .venv          # falls "python" nicht gefunden wird: py -3 -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -89,12 +85,8 @@ The GitHub Actions pipeline (`.github/workflows/ci.yml`) builds this artifact au
 ## Notes
 
 - Without `DATABASE_URL`, the database is stored in the operating system's temporary directory as `techstyle.db`. Compose uses PostgreSQL instead.
-- **Windows:** there is no `/tmp`, so Python resolves that path to `C:\tmp\techstyle.db` (the `tmp`
-  folder on the drive you are working from). If the folder is missing, both `seed_data.py` and
-  `app.py` abort with `sqlite3.OperationalError: unable to open database file`. `run_dev.ps1`
-  creates the folder for you; for the manual setup create it yourself with `mkdir C:\tmp -Force`.
-- Run `python seed_data.py` again to reset products, or delete the DB file for a fresh start
-  (`rm /tmp/techstyle.db` / `del C:\tmp\techstyle.db`) — activate the venv first
+- Run `python seed_data.py --if-empty` to initialise without resetting products.
+- Run `python seed_data.py` only when you deliberately want to replace the product catalogue.
 - Admin panel has no login — it's fine for now
 
 ---
