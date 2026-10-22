@@ -1,5 +1,6 @@
 from sqlalchemy import select, text
 from sqlalchemy.exc import OperationalError
+from datetime import datetime
 
 import database
 from seed_data import seed
@@ -19,6 +20,31 @@ def test_checkout_with_quoted_customer_name(client):
     assert order["total"] == product["price"] * 2
     assert item["order_id"] == order["id"]
     assert item["quantity"] == 2
+
+
+def test_admin_accepts_database_datetime_values(client, monkeypatch):
+    """PostgreSQL returns datetime objects where raw SQLite returns strings."""
+    from app import query_db
+
+    client.post("/register", data={
+        "username": "sam", "email": "sam@example.test", "password": "exercise",
+    })
+    client.post("/cart/add/1", data={"quantity": "1"})
+    client.post("/checkout", data={
+        "name": "Sam", "email": "sam@example.test", "address": "Testweg 1",
+    })
+
+    def timestamp_rows(query, args=None, one=False):
+        result = query_db(query, args, one)
+        if not one:
+            result = [dict(row) for row in result]
+            for row in result:
+                if isinstance(row.get("created_at"), str):
+                    row["created_at"] = datetime.fromisoformat(row["created_at"])
+        return result
+
+    monkeypatch.setattr("app.query_db", timestamp_rows)
+    assert client.get("/admin").status_code == 200
 
 
 def test_seed_on_restart_preserves_changes(client):
