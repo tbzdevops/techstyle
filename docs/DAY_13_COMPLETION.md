@@ -1,5 +1,11 @@
 # Tag 13 – Container-Musterlösung für TechStyle
 
+## Einordnung im Unterricht
+
+Du bearbeitest den Projektauftrag in Deinem eigenen Team-Repository, das Ihr an Tag01 angelegt und seither weiterentwickelt habt. Ausgangspunkt ist Euer aktueller Projektstand. Dieses Repository und die Branches `day_xx_solution` enthalten Musterlösungen. Sie dienen zum Vergleichen, als Hilfe und jederzeit als optionale Wiedereinstiegspunkte, falls Euer Projekt nicht funktioniert. `day_12_solution` ist die Musterlösung zu Tag12 und kein verpflichtender Startstand für Tag13.
+
+Sichere Eure bisherigen Änderungen, bevor Ihr einen Musterlösungsstand übernehmt, und dokumentiere den gewählten Wiedereinstieg. Arbeite anschliessend im eigenen Repository weiter. Übertrage einzelne Anpassungen gezielt und erhalte eigene Erweiterungen. Der unten gezeigte Clone-Befehl dient dazu, die vollständige Referenzlösung separat auszuprobieren.
+
 ## Ergebnis und Abgrenzung
 
 Der Shop läuft mit Gunicorn in `web` und verwendet tatsächlich PostgreSQL im Service `db`. Compose verbindet beide über den DNS-Namen `db`; die Daten bleiben im benannten Volume `postgres-data`. GitHub Actions baut und testet die Container und veröffentlicht das Anwendungsimage erst nach erfolgreichen Tests in GHCR.

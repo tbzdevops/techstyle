@@ -5,9 +5,13 @@
 Die vollständige Anleitung mit Architekturvergleich, Voraussetzungen, Startbefehlen,
 Abnahmetests und GHCR-Veröffentlichung findest Du in
 [docs/DAY_13_COMPLETION.md](docs/DAY_13_COMPLETION.md).
-Dieser Branch ergänzt den Stand von `day_12_solution` um einen lokalen
-Compose-Stack mit Webanwendung und PostgreSQL. Der folgende historische Quick Start
-beschreibt die Ausführung ohne Container mit SQLite.
+Dieser Branch zeigt eine Musterlösung mit Webanwendung und PostgreSQL und integriert
+hierfür die Tag12-Musterlösung. Im Unterricht arbeitet Ihr in Eurem eigenen,
+an Tag01 angelegten und seither weiterentwickelten Team-Repository.
+Alle `day_xx_solution`-Branches sind Referenzen und jederzeit optionale
+Wiedereinstiegspunkte bei Problemen. Ein Wechsel auf diese Branches ist keine
+Voraussetzung für den Projektauftrag. Der folgende historische Quick Start
+beschreibt die Ausführung der Referenz ohne Container mit SQLite.
 
 A fashion e-commerce app for developers. Built with Python Flask + SQLite..
 
