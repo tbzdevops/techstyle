@@ -1,5 +1,15 @@
 # TechStyle Online Shop
 
+## Tag 14 – Deployment auf AWS (ECR + EC2)
+
+Dieser Branch ergänzt die Tag-13-Musterlösung um eine Pipeline, die den Shop bei
+jedem Push auf `main` testet, das Image mit dem Commit-SHA nach AWS ECR pusht und
+mit Docker Compose auf einer EC2-Instanz ausrollt:
+[`.github/workflows/deploy-aws.yml`](.github/workflows/deploy-aws.yml),
+[`docker-compose.prod.yml`](docker-compose.prod.yml) und
+[`DEPLOYMENT.md`](DEPLOYMENT.md). Anleitung, Abnahmetests und Fehlersuche stehen in
+[docs/DAY_14_COMPLETION.md](docs/DAY_14_COMPLETION.md).
+
 ## Tag 13 – Container-Musterlösung
 
 Die vollständige Anleitung mit Architekturvergleich, Voraussetzungen, Startbefehlen,

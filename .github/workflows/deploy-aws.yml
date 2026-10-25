@@ -1,0 +1,124 @@
+name: Tag 14 - Deployment auf AWS (ECR + EC2)
+
+# Stufe 1 testet die Anwendung, Stufe 2 legt das Image mit dem Commit-SHA als
+# Tag in ECR ab, Stufe 3 zieht genau dieses Image auf der EC2-Instanz und
+# startet den Compose-Stack neu. Jede Stufe läuft nur, wenn die vorherige grün ist.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Nie zwei Deployments gleichzeitig auf denselben Server.
+concurrency:
+  group: deploy-aws
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: techstyle
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  test:
+    name: 1 · Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Anwendungstests ausführen
+        run: |
+          pip install -r requirements-container.txt pytest
+          python -m pytest tests/ -q
+
+  build-push:
+    name: 2 · Image bauen und nach ECR pushen
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: AWS-Zugang aus den GitHub Secrets
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Bei ECR anmelden
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - uses: docker/setup-buildx-action@v3
+      - name: Image bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # SHA-Tag: eindeutig und nachvollziehbar. latest: bequem zum Ausprobieren.
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+
+  deploy:
+    name: 3 · Auf EC2 deployen
+    needs: build-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: AWS-Zugang aus den GitHub Secrets
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Registry-Adresse ermitteln
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: SSH-Zugang zur EC2-Instanz einrichten
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2.pem
+          chmod 600 ~/.ssh/ec2.pem
+          cat > ~/.ssh/config <<EOF
+          Host ec2
+            HostName $EC2_HOST
+            User ubuntu
+            IdentityFile ~/.ssh/ec2.pem
+            StrictHostKeyChecking accept-new
+          EOF
+      - name: Compose-Datei und Konfiguration auf den Server kopieren
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: |
+          ssh ec2 'mkdir -p ~/techstyle'
+          scp docker-compose.prod.yml ec2:techstyle/docker-compose.yml
+          printf 'TECHSTYLE_IMAGE=%s\nPOSTGRES_PASSWORD=%s\nSECRET_KEY=%s\n' \
+            "$IMAGE" "$POSTGRES_PASSWORD" "$SECRET_KEY" \
+            | ssh ec2 'umask 077 && cat > ~/techstyle/.env'
+      - name: Neues Image ziehen und Stack neu starten
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        # Das kurzlebige ECR-Passwort holt der Runner und reicht es per SSH an
+        # Docker auf dem Server weiter; die Instanz braucht selbst keine AWS-Rechte.
+        run: |
+          # shellcheck disable=SC2029  # $REGISTRY soll auf dem Runner eingesetzt werden
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | ssh ec2 "docker login --username AWS --password-stdin $REGISTRY"
+          ssh ec2 'cd ~/techstyle && docker compose pull && docker compose up -d --wait --wait-timeout 120 && docker compose ps'
+      - name: Smoke-Test über das Internet
+        run: |
+          curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors "http://$EC2_HOST/healthz"
+          echo "Shop erreichbar: http://$EC2_HOST"
