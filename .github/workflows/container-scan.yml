@@ -1,0 +1,19 @@
+name: Container Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t techstyle:ci .
+      - uses: snyk/actions/setup@master
+      - name: Container-Scan
+        continue-on-error: true   # erst warnen, dann blockieren
+        run: snyk container test techstyle:ci --file=Dockerfile --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

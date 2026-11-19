@@ -133,7 +133,7 @@
                   {{ o.status }}
                 </span>
               </td>
-              <td class="text-muted small">{{ o.created_at[:10] }}</td>
+              <td class="text-muted small">{{ (o.created_at|string)[:10] }}</td>
               <td>
                 <form action="{{ url_for('admin_update_order', order_id=o.id) }}" method="post" class="d-flex gap-1">
                   <select name="status" class="form-select form-select-sm" style="width:110px;">
@@ -171,7 +171,7 @@
               <td>{{ u.email }}</td>
               <!-- Plaintext passwords exposed in admin — security is a day-11 problem -->
               <td><code class="text-danger">{{ u.password }}</code></td>
-              <td class="text-muted small">{{ u.created_at[:10] }}</td>
+              <td class="text-muted small">{{ (u.created_at|string)[:10] }}</td>
             </tr>
             {% endfor %}
           </tbody>

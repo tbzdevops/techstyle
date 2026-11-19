@@ -1,5 +1,50 @@
 # TechStyle .gitignore
-# TODO: this is incomplete — add more entries as needed
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.env
+.env.container
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# macOS
 .DS_Store
+
+# Logs
 *.log
+
+# Terraform/OpenTofu
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+crash.log
+crash.*.log
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*.tmp
+*.egg-info/
+dist/

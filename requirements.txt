@@ -1,7 +1,4 @@
 # TechStyle dependencies
-# Note: versions are intentionally unpinned — install whatever pip finds.
-# This will bite us eventually. (Day 04 TODO: pin versions and add pip-audit)
-
 Flask
 Flask-SQLAlchemy
 Jinja2
@@ -9,7 +6,16 @@ Werkzeug
 click
 itsdangerous
 MarkupSafe
-SQLAlchemy
+SQLAlchemy==2.1.6
+psycopg[binary]==3.3.6
 gunicorn
 python-dotenv
 requests
+
+# Testing
+pytest
+pytest-mock==3.15.0
+pytest-cov
+
+# Code quality
+flake8
