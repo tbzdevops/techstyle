@@ -68,6 +68,7 @@ jobs:
     name: 3 · Auf EC2 deployen
     needs: build-push
     runs-on: ubuntu-latest
+    environment: production       # GitHub zeichnet jedes Deployment auf
     timeout-minutes: 10
     env:
       EC2_HOST: ${{ secrets.EC2_HOST }}

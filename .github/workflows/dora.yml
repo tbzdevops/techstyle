@@ -1,0 +1,47 @@
+name: DORA-Metriken
+
+# Misst jede Woche die fünf DORA-Metriken der letzten DORA_TAGE Tage und
+# schreibt den Bericht in die Zusammenfassung des Laufs. Was als Deployment
+# zählt, legt die Repository-Variable DORA_WORKFLOW fest (Standard:
+# deploy-aws.yml). Ohne laufendes AWS-Deployment setzt ihr sie auf ci.yml.
+on:
+  schedule:
+    - cron: "0 6 * * 1"          # jeden Montag 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      tage:
+        description: Messzeitraum in Tagen
+        default: "28"
+
+# Nur lesen: Workflow-Läufe, Commits und Issues.
+permissions:
+  actions: read
+  contents: read
+  issues: read
+
+jobs:
+  dora:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DORA_WORKFLOW: ${{ vars.DORA_WORKFLOW || 'deploy-aws.yml' }}
+      DORA_TAGE: ${{ inputs.tage || '28' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Deployments und Vorfälle aus GitHub lesen
+        run: python scripts/dora_collect.py deployments.csv
+      - name: Metriken berechnen
+        run: |
+          {
+            echo "## DORA-Metriken (Deployments aus $DORA_WORKFLOW)"
+            echo
+            python scripts/dora.py deployments.csv --tage "$DORA_TAGE"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dora-deployments
+          path: deployments.csv

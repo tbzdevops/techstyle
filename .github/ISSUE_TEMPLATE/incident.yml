@@ -1,0 +1,25 @@
+name: Vorfall (Incident)
+description: Ein Deployment hat in Produktion ein Problem verursacht
+title: "Vorfall: "
+labels: ["incident"]
+body:
+  - type: input
+    id: deployment
+    attributes:
+      label: Betroffenes Deployment (Commit-SHA)
+      description: Mindestens die ersten 7 Zeichen, z.B. aus dem Lauf «Tag 14 - Deployment auf AWS»
+      placeholder: 3f2a9c1
+    validations:
+      required: true
+  - type: textarea
+    id: auswirkung
+    attributes:
+      label: Auswirkung
+      description: Was sehen Kundinnen und Kunden? Seit wann?
+    validations:
+      required: true
+  - type: textarea
+    id: massnahme
+    attributes:
+      label: Sofortmassnahme
+      description: Rollback, Hotfix oder Feature Flag? Den Hotfix-Commit mit «Fixes #<Nummer>» verknüpfen.

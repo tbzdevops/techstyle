@@ -1,5 +1,16 @@
 # TechStyle Online Shop
 
+## Tag 16 – DORA-Metriken
+
+Dieser Branch ergänzt die Tag-15-Musterlösung um eine Messpipeline für die fünf
+DORA-Metriken: Der Deploy-Job meldet `environment: production`, Vorfälle laufen
+über die Issue-Vorlage [`incident.yml`](.github/ISSUE_TEMPLATE/incident.yml),
+[`scripts/dora_collect.py`](scripts/dora_collect.py) holt die Daten aus der GitHub
+REST API, [`scripts/dora.py`](scripts/dora.py) rechnet, und
+[`.github/workflows/dora.yml`](.github/workflows/dora.yml) schreibt jeden Montag
+einen Bericht. Die Auswertung steht in [`DORA.md`](DORA.md), Ablauf und
+Abnahmekriterien in [docs/DAY_16_COMPLETION.md](docs/DAY_16_COMPLETION.md).
+
 ## Tag 14 – Deployment auf AWS (ECR + EC2)
 
 Dieser Branch ergänzt die Tag-13-Musterlösung um eine Pipeline, die den Shop bei
