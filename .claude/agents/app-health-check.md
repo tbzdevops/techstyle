@@ -29,8 +29,12 @@ import json
 import sqlite3
 import tempfile
 
-# Use a temporary database so we never touch the real one
+# Use a temporary database so we never touch the real one.
+# From day 14 on, database.py (SQLAlchemy) reads DATABASE_URL once at import
+# time, so it must be set BEFORE "import app". Older branches use sqlite3 and
+# app.DATABASE, which is patched after the import below. Both are needed.
 tmp_db = tempfile.mktemp(suffix=".db")
+os.environ["DATABASE_URL"] = f"sqlite:///{tmp_db}"
 
 # Add the current directory (repo root) to the path
 sys.path.insert(0, os.getcwd())
