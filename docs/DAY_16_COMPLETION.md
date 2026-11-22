@@ -2,15 +2,15 @@
 
 ## Einordnung im Unterricht
 
-Tag 16 baut auf dem Stand nach Tag 15 auf: dem eigenen Projekt des Teams oder `day_15_solution`. Das Classroom-Repository des Projektauftrags (`day16`) enthält den Stand von `day_15_solution` und die Vorlage `DORA.md`. Aus der Praxis desselben Tages kommt der Rechenkern `dora.py`, der aus einem Deployment-Protokoll die fünf DORA-Metriken berechnet, und die Entscheidungen zu den Streitfällen (P1) vom Nimbus-Board.
+Tag 16 baut auf dem Stand nach Tag 15 auf: dem eigenen Projekt des Teams oder `day_15_solution`. Das Classroom-Repository des Projektauftrags (`day16`) enthält den Stand von `day_15_solution` und die Vorlage `DORA.md`. Aus der Praxis desselben Tages kommt das fertige Werkzeug `dora.py`, das aus einem Deployment-Protokoll die fünf DORA-Metriken berechnet, und die Entscheidungen zu den Streitfällen (P1) vom Nimbus-Board.
 
-Das Projekt dauert 70 Minuten (bis 11:25, danach Gallery Walk) und ist in vier Schritte gegliedert. Neu oder geändert:
+Das Projekt dauert 70 Minuten (danach Gallery Walk) und ist in vier Schritte gegliedert. Neu oder geändert:
 
 | Datei | Schritt | Zweck |
 |-------|---------|-------|
 | [`.github/workflows/deploy-aws.yml`](../.github/workflows/deploy-aws.yml) | 1 | `environment: production` im Deploy-Job: GitHub zeichnet jedes Deployment auf |
 | [`.github/ISSUE_TEMPLATE/incident.yml`](../.github/ISSUE_TEMPLATE/incident.yml) | 1 | Issue-Vorlage «Vorfall (Incident)» mit Label `incident` und Pflichtfeld Commit-SHA |
-| [`scripts/dora.py`](../scripts/dora.py) | 2 | Rechenkern aus der Praxis: fünf Metriken, Median, Einordnung nach der Kursskala |
+| [`scripts/dora.py`](../scripts/dora.py) | 2 | Werkzeug aus der Praxis, unverändert kopiert: fünf Metriken, Median, Einordnung nach der Kursskala |
 | [`scripts/dora_collect.py`](../scripts/dora_collect.py) | 2 | Holt Workflow-Läufe, Commit-Vergleiche und Incident-Issues aus der GitHub REST API und schreibt das Protokoll als CSV |
 | [`.github/workflows/dora.yml`](../.github/workflows/dora.yml) | 2 | Messpipeline: jeden Montag und auf Knopfdruck, nur Leserechte, Bericht in der Zusammenfassung des Laufs |
 | [`DORA.md`](../DORA.md) | 1, 4 | Definitionen, Messwerte mit Stufen, Link zum Lauf, Grenzen der Daten, Massnahme für die Retro an Tag 17 |

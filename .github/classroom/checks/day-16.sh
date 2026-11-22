@@ -3,7 +3,7 @@
 # Ausgangsstand ist day_15_solution. Geprüft werden die Messbarkeit
 # (environment im Deploy-Job, Issue-Vorlage für Vorfälle), die Messpipeline
 # (scripts/dora.py, scripts/dora_collect.py, .github/workflows/dora.yml) und
-# die Auswertung in DORA.md. Der Rechenkern wird mit einem eigenen Protokoll
+# die Auswertung in DORA.md. Das Werkzeug dora.py wird mit einem eigenen Protokoll
 # nachgerechnet, nicht nur gesucht. Die Workflow-Kriterien prüfen nur dora.yml,
 # weil ai-prompt-eval.yml im Ausgangsstand schon GITHUB_STEP_SUMMARY nutzt.
 # DORA.md liegt als Vorlage im Repo: Gezählt wird nur Text ausserhalb der
@@ -15,7 +15,7 @@ solution_for_id() {
     a1-environment) echo "Ergänze im Deploy-Job von deploy-aws.yml die Zeile 'environment: production' (auf gleicher Höhe wie runs-on)" ;;
     a1-incident) echo "Lege .github/ISSUE_TEMPLATE/incident.yml an, mit 'labels: [\"incident\"]' und einem Feld für die Commit-SHA (Vorlage in Tag16.md)" ;;
     a1-definitions) echo "Ersetze in DORA.md unter '### Deployment', '### Fehlgeschlagenes Deployment' und '### Beginn der Lead Time' den Kommentar durch eure Definition (je mindestens ein bis zwei Sätze)" ;;
-    a2-core) echo "Kopiere euren Rechenkern aus der Praxis nach scripts/dora.py; alle Funktionen müssen die Tests aus der Praxis bestehen" ;;
+    a2-core) echo "Kopiere dora.py unverändert aus deinem Praxis-Repository (Tag 16) nach scripts/dora.py" ;;
     a2-collect) echo "Lege scripts/dora_collect.py nach der Vorlage in Tag16.md an: Workflow-Läufe über /actions/workflows/<datei>/runs, Vorfälle über Issues mit Label incident" ;;
     a2-trigger) echo "Gib .github/workflows/dora.yml die Trigger 'schedule:' (mit cron) und 'workflow_dispatch:'" ;;
     a2-permissions) echo "Setze in dora.yml 'permissions:' mit 'actions: read', 'contents: read' und 'issues: read', ohne write" ;;

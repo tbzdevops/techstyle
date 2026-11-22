@@ -1,7 +1,10 @@
 """DORA-Metriken aus einem Deployment-Protokoll berechnen.
 
+Ein fertiges Werkzeug: Ihr müsst hier nichts programmieren. Eure Arbeit ist,
+die Daten richtig aufzubereiten, das Ergebnis nachzuprüfen und einzuordnen.
+
 Aufruf:
-    python dora.py data/team-kasse.csv
+    python dora.py data/woche.csv --tage 7
     python dora.py data/team-kasse.csv --tage 28
 
 Das Protokoll ist eine CSV-Datei mit einer Zeile pro Deployment in Produktion:
@@ -12,8 +15,9 @@ Das Protokoll ist eine CSV-Datei mit einer Zeile pro Deployment in Produktion:
     restored_at    Zeitpunkt, an dem der Shop wieder normal lief (nur bei failed = ja)
     rework         ja, wenn das Deployment ungeplant war, ausgelöst durch einen Vorfall
 
-Dasselbe Format nutzen das Spielprotokoll aus Nimbus und im Projekt
-scripts/dora_collect.py. Darum funktioniert dieser Rechenkern für alle drei.
+Weitere Spalten (z.B. umgebung oder notiz) stören nicht, dora.py ignoriert
+sie. Dasselbe Format nutzen das Spielprotokoll aus Nimbus und im Projekt
+scripts/dora_collect.py. Darum funktioniert dieses Werkzeug für alle drei.
 """
 
 import argparse
@@ -25,7 +29,7 @@ STUFEN = ("Elite", "Hoch", "Mittel", "Niedrig")
 
 
 # ---------------------------------------------------------------------------
-# Gegeben: Protokoll einlesen und Hilfsfunktionen
+# Protokoll einlesen und Hilfsfunktionen
 # ---------------------------------------------------------------------------
 
 def parse_time(text):
@@ -72,9 +76,7 @@ def period_days(deployments):
 
 
 # ---------------------------------------------------------------------------
-# Ab hier seid ihr dran (P2). Ersetzt jedes «raise NotImplementedError».
-# Die Tests in test_dora.py zeigen, was jede Funktion liefern muss:
-#     python -m unittest -v
+# Die fünf Metriken und die Einordnung nach der Kursskala
 # ---------------------------------------------------------------------------
 
 def deployment_frequency(deployments, days):
@@ -87,11 +89,12 @@ def deployment_frequency(deployments, days):
 def lead_time_hours(deployments):
     """Durchsatz: Median von (deployed_at - committed_at) in Stunden.
 
-    Ohne Deployments: None.
+    Zeilen ohne committed_at (z.B. ein Feature Flag ohne Commit) zählen
+    nicht mit. Ohne solche Deployments: None.
     """
-    if not deployments:
-        return None
-    return statistics.median(hours(d["deployed_at"] - d["committed_at"]) for d in deployments)
+    times = [hours(d["deployed_at"] - d["committed_at"])
+             for d in deployments if d["committed_at"]]
+    return statistics.median(times) if times else None
 
 
 def change_failure_rate(deployments):
@@ -160,7 +163,7 @@ def classify(metric, value):
 
 
 # ---------------------------------------------------------------------------
-# Gegeben: Bericht als Markdown-Tabelle
+# Bericht als Markdown-Tabelle
 # ---------------------------------------------------------------------------
 
 def _fmt(value, unit):
