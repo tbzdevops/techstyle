@@ -252,7 +252,17 @@ check_file_exists() {
   local id="$1"
   local description="$2"
   local filepath="$3"
-  check "$id" "$description" "[ -f '$filepath' ]"
+  local condition
+  if [[ "$filepath" == *"|"* ]]; then
+    condition="false"
+    local IFS='|'
+    for path in $filepath; do
+      condition="$condition || [ -f '$path' ]"
+    done
+  else
+    condition="[ -f '$filepath' ]"
+  fi
+  check "$id" "$description" "$condition"
 }
 
 check_file_contains() {
@@ -260,7 +270,17 @@ check_file_contains() {
   local description="$2"
   local filepath="$3"
   local pattern="$4"
-  check "$id" "$description" "grep -qiE '$pattern' '$filepath' 2>/dev/null"
+  local condition
+  if [[ "$filepath" == *"|"* ]]; then
+    condition="false"
+    local IFS='|'
+    for path in $filepath; do
+      condition="$condition || grep -qiE '$pattern' $path 2>/dev/null"
+    done
+  else
+    condition="grep -qiE '$pattern' '$filepath' 2>/dev/null"
+  fi
+  check "$id" "$description" "$condition"
 }
 
 check_workflow_exists() {
@@ -275,7 +295,17 @@ check_directory_exists() {
   local id="$1"
   local description="$2"
   local dirpath="$3"
-  check "$id" "$description" "[ -d '$dirpath' ]"
+  local condition
+  if [[ "$dirpath" == *"|"* ]]; then
+    condition="false"
+    local IFS='|'
+    for path in $dirpath; do
+      condition="$condition || [ -d '$path' ]"
+    done
+  else
+    condition="[ -d '$dirpath' ]"
+  fi
+  check "$id" "$description" "$condition"
 }
 
 check_command_in_file() {

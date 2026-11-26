@@ -1,0 +1,71 @@
+name: Setup Kubernetes Cluster & Deploy TechStyle via ArgoCD
+
+on:
+  push:
+    branches:
+      - day_18_solution
+    paths:
+      - "infrastruktur-k8s/**"
+      - "ansible/**"
+      - "k8s/**"
+      - ".github/workflows/k8s-cluster.yml"
+  workflow_dispatch:
+
+jobs:
+  terraform_and_ansible:
+    name: Provision K8s Infrastructure & Setup Cluster
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Prepare SSH Key
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY || secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+
+      - name: Terraform Init
+        working-directory: infrastruktur-k8s
+        run: |
+          terraform init -backend-config=backend.conf
+
+      - name: Terraform Apply
+        working-directory: infrastruktur-k8s
+        run: |
+          terraform apply -auto-approve -var="ssh_public_key=$(cat ~/.ssh/id_rsa.pub)"
+
+      - name: Set up Python for Ansible
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Ansible and AWS collections
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible boto3 botocore
+          ansible-galaxy collection install amazon.aws
+
+      - name: Run Ansible Cluster Setup (K8s & ArgoCD)
+        working-directory: ansible
+        run: |
+          ansible-playbook -i aws_ec2.yml cluster-setup.yml
+
+      - name: Deploy TechStyle Manifests / ArgoCD Application
+        working-directory: k8s
+        run: |
+          echo "Kubernetes Manifeste und ArgoCD Application vorbereitet in k8s/"

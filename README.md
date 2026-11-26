@@ -1,5 +1,14 @@
 # TechStyle Online Shop
 
+## Tag 18 – Infrastructure as Code & Kubernetes Cluster mit ArgoCD
+
+Dieser Branch enthält die Musterlösung für Tag 18:
+- **Terraform State Management** mit AWS S3 Backend und DynamoDB Locking in [`infrastruktur-k8s/`](infrastruktur-k8s).
+- **Ansible Dynamic Inventory** mit dem AWS EC2 Plugin und automatisiertes Cluster Setup in [`ansible/`](ansible).
+- **Kubernetes Manifeste** für die TechStyle Applikation (`Deployment`, `Service`) und GitOps via ArgoCD Application in [`k8s/`](k8s).
+- **CI/CD Pipeline** zur Automatisierung unter [`.github/workflows/k8s-cluster.yml`](.github/workflows/k8s-cluster.yml).
+- Vollständige Dokumentation siehe [docs/DAY_18_COMPLETION.md](docs/DAY_18_COMPLETION.md).
+
 ## Tag 16 – DORA-Metriken
 
 Dieser Branch ergänzt die Tag-15-Musterlösung um eine Messpipeline für die fünf

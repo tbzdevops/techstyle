@@ -1,0 +1,22 @@
+---
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-1
+
+filters:
+  instance-state-name: running
+  tag:Project:
+    - techstyle-k8s
+
+hostnames:
+  - ip-address
+  - dns-name
+  - tag:Name
+
+keyed_groups:
+  - key: tags.Role
+    prefix: role
+  - key: tags.Environment
+    prefix: env
+  - key: tags.Name
+    prefix: tag_Name
